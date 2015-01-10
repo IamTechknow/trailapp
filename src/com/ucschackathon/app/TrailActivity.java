@@ -14,6 +14,7 @@ import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
 
+import android.view.MenuItem;
 import android.widget.Toast;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
@@ -26,6 +27,7 @@ public class TrailActivity extends Activity {
 	private static final String theKML = "http://www.watsonvillewetlandswatch.org/sloughs/EntireMapWeb.kml";
 	private GoogleMap map;
 	private InputStream is;
+	private boolean inSatellite;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -33,7 +35,6 @@ public class TrailActivity extends Activity {
 		setContentView(R.layout.main);
 		map = ((MapFragment) getFragmentManager().findFragmentById(R.id.map))
 				.getMap();
-		map.setMapType(GoogleMap.MAP_TYPE_HYBRID); //Enable satellite mode with roads
 
 		Marker watsonville = map.addMarker(new MarkerOptions().position(WATSONVILLE)
 				.title("Watsonville"));
@@ -97,9 +98,29 @@ public class TrailActivity extends Activity {
 	}
 
 	@Override
-	public boolean onCreateOptionsMenu(Menu menu) {
+	public boolean onCreateOptionsMenu(Menu menu) { //Code to create menu
 		getMenuInflater().inflate(R.menu.main, menu);
 		return true;
 	}
-
+	@Override
+	public boolean onOptionsItemSelected(MenuItem item) {
+		// Handle item selection
+		switch (item.getItemId()) {
+			case R.id.satellite_enabled: //Enable Satellite mode or disable
+				if(inSatellite) {
+					map.setMapType(GoogleMap.MAP_TYPE_NORMAL);
+					inSatellite = false;
+				}
+				else {
+					map.setMapType(GoogleMap.MAP_TYPE_SATELLITE);
+					inSatellite = true;
+				}
+				return true;
+			case R.id.about: //Show about screen
+				//showHelp();
+				return true;
+			default:
+				return super.onOptionsItemSelected(item);
+		}
+	}
 }

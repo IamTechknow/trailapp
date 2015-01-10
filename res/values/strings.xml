@@ -2,4 +2,6 @@
 <resources>
     <string name="app_name">trailapp</string>
     <string name="noconnectionID">No Internet Connection!</string>
+    <string name="satellite_menu_option">Enable Satellite Mode</string>
+    <string name="about_menu_option">About this App</string>
 </resources>
