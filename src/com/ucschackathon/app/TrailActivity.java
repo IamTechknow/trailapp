@@ -13,7 +13,7 @@ import com.google.android.gms.maps.model.MarkerOptions;
 
 public class TrailActivity extends Activity {
 
-	static final LatLng WATSONVILLE = new LatLng(36.9154033, -121.7694327);
+	private static final LatLng WATSONVILLE = new LatLng(36.9154033, -121.7694327);
 	private GoogleMap map;
 
 	@Override
@@ -25,8 +25,8 @@ public class TrailActivity extends Activity {
 		Marker hamburg = map.addMarker(new MarkerOptions().position(WATSONVILLE)
 				.title("Watsonville"));
 
-		// Move the camera instantly to hamburg with a zoom of 15.
-		map.moveCamera(CameraUpdateFactory.newLatLngZoom(WATSONVILLE, 15));
+		// Move the camera instantly to Watsonville with a zoom of 20.
+		map.moveCamera(CameraUpdateFactory.newLatLngZoom(WATSONVILLE, 20));
 
 		// Zoom in, animating the camera.
 		map.animateCamera(CameraUpdateFactory.zoomTo(10), 2000, null);
