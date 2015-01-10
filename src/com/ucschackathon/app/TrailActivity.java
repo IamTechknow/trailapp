@@ -2,6 +2,7 @@ package com.ucschackathon.app;
 
 import android.app.Activity;
 import android.content.Context;
+import android.graphics.Color;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.Bundle;
@@ -17,9 +18,7 @@ import android.widget.Toast;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.MapFragment;
-import com.google.android.gms.maps.model.LatLng;
-import com.google.android.gms.maps.model.Marker;
-import com.google.android.gms.maps.model.MarkerOptions;
+import com.google.android.gms.maps.model.*;
 
 public class TrailActivity extends Activity {
 
@@ -34,6 +33,8 @@ public class TrailActivity extends Activity {
 		setContentView(R.layout.main);
 		map = ((MapFragment) getFragmentManager().findFragmentById(R.id.map))
 				.getMap();
+		map.setMapType(GoogleMap.MAP_TYPE_HYBRID); //Enable satellite mode with roads
+
 		Marker watsonville = map.addMarker(new MarkerOptions().position(WATSONVILLE)
 				.title("Watsonville"));
 
@@ -41,9 +42,32 @@ public class TrailActivity extends Activity {
 		map.moveCamera(CameraUpdateFactory.newLatLngZoom(WATSONVILLE, 15));
 
 		// Zoom in, animating the camera.
-		map.animateCamera(CameraUpdateFactory.zoomTo(10), 2000, null);
+		map.animateCamera(CameraUpdateFactory.zoomTo(16), 2000, null);
 
-		//Get access to the KML file by setting up an URL connection
+		//Draw shapes onto the map
+		CircleOptions circleOptions = new CircleOptions()
+				.center(WATSONVILLE)
+				.radius(100)
+				.fillColor(0x40ff0000)  //semi-transparent
+				.strokeColor(Color.BLUE)
+				.strokeWidth(5);
+
+		// Get back the mutable Circle
+		Circle circle = map.addCircle(circleOptions);
+
+		// Instantiates a new Polyline object and adds points to define a rectangle
+		PolylineOptions rectOptions = new PolylineOptions()
+				.add(new LatLng(37.35, -122.0))
+				.add(new LatLng(37.45, -122.0))  // North of the previous point, but at the same longitude
+				.add(new LatLng(37.45, -122.2))  // Same latitude, and 30km to the west
+				.add(new LatLng(37.35, -122.2))  // Same longitude, and 16km to the south
+				.add(new LatLng(37.35, -122.0)); // Closes the polyline.
+
+		// Get back the mutable Polyline
+		Polyline polyline = map.addPolyline(rectOptions);
+
+
+		/*Get access to the KML file by setting up an URL connection
 
 		ConnectivityManager connMgr = (ConnectivityManager)
 				getSystemService(Context.CONNECTIVITY_SERVICE);
@@ -52,8 +76,8 @@ public class TrailActivity extends Activity {
 			try {
 				URL url = new URL(theKML);
 				HttpURLConnection conn = (HttpURLConnection) url.openConnection();
-				conn.setReadTimeout(10000 /* milliseconds */);
-				conn.setConnectTimeout(15000 /* milliseconds */);
+				conn.setReadTimeout(10000 // milliseconds );
+				conn.setConnectTimeout(15000 // milliseconds );
 				conn.setRequestMethod("GET");
 				conn.setDoInput(true);
 				// Starts the query
@@ -69,7 +93,7 @@ public class TrailActivity extends Activity {
 			}
 		}
 		else //Let the user know there's no connection
-			Toast.makeText(this,R.string.noconnectionID, Toast.LENGTH_SHORT).show();
+			Toast.makeText(this,R.string.noconnectionID, Toast.LENGTH_SHORT).show(); */
 	}
 
 	@Override
