@@ -23,8 +23,19 @@ import com.google.android.gms.maps.model.*;
 
 public class TrailActivity extends Activity {
 
-	private static final LatLng WATSONVILLE = new LatLng(36.9154033, -121.7694327);
+	private static final LatLng[] WATSONVILLE = {new LatLng(36.9154033, -121.7694327),
+			new LatLng(36.911, -121.803),
+			new LatLng(36.9016682,-121.7845458),
+			new LatLng(36.913525, -121.780813),
+			new LatLng(36.911101, -121.776457),
+			new LatLng(36.913507, -121.768687),
+			new LatLng(36.912601, -121.770290),
+			new LatLng(36.9016682,-121.7845458),
+	};
+
+
 	private static final String theKML = "http://www.watsonvillewetlandswatch.org/sloughs/EntireMapWeb.kml";
+
 	private GoogleMap map;
 	private InputStream is;
 	private boolean inSatellite;
@@ -36,18 +47,18 @@ public class TrailActivity extends Activity {
 		map = ((MapFragment) getFragmentManager().findFragmentById(R.id.map))
 				.getMap();
 
-		Marker watsonville = map.addMarker(new MarkerOptions().position(WATSONVILLE)
+		Marker watsonville = map.addMarker(new MarkerOptions().position(WATSONVILLE[0])
 				.title("Watsonville"));
 
 		// Move the camera instantly to hamburg with a zoom of 15.
-		map.moveCamera(CameraUpdateFactory.newLatLngZoom(WATSONVILLE, 15));
+		map.moveCamera(CameraUpdateFactory.newLatLngZoom(WATSONVILLE[0], 15));
 
 		// Zoom in, animating the camera.
 		map.animateCamera(CameraUpdateFactory.zoomTo(16), 2000, null);
 
 		//Draw shapes onto the map
 		CircleOptions circleOptions = new CircleOptions()
-				.center(WATSONVILLE)
+				.center(WATSONVILLE[0])
 				.radius(100)
 				.fillColor(0x40ff0000)  //semi-transparent
 				.strokeColor(Color.BLUE)
@@ -97,11 +108,24 @@ public class TrailActivity extends Activity {
 			Toast.makeText(this,R.string.noconnectionID, Toast.LENGTH_SHORT).show(); */
 	}
 
+	public void showMarkers() {
+		Marker[] markers = {
+				map.addMarker(new MarkerOptions().position(WATSONVILLE[1]).title("Nest of Osprey")),
+				map.addMarker(new MarkerOptions().position(WATSONVILLE[2]).title("In the 1800s")),
+				map.addMarker(new MarkerOptions().position(WATSONVILLE[3]).title("American White Pelican")),
+				map.addMarker(new MarkerOptions().position(WATSONVILLE[4]).title("Tarplant")),
+				map.addMarker(new MarkerOptions().position(WATSONVILLE[5]).title("Wetland restoration")),
+				map.addMarker(new MarkerOptions().position(WATSONVILLE[6]).title("Cattails")),
+				map.addMarker(new MarkerOptions().position(WATSONVILLE[7]).title("Ohlone Indian")),
+		};
+	}
+
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu) { //Code to create menu
 		getMenuInflater().inflate(R.menu.main, menu);
 		return true;
 	}
+
 	@Override
 	public boolean onOptionsItemSelected(MenuItem item) {
 		// Handle item selection
@@ -115,6 +139,9 @@ public class TrailActivity extends Activity {
 					map.setMapType(GoogleMap.MAP_TYPE_SATELLITE);
 					inSatellite = true;
 				}
+				return true;
+			case R.id.showMarkers:
+				showMarkers();
 				return true;
 			case R.id.about: //Show about screen
 				//showHelp();
