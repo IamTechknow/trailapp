@@ -170,7 +170,7 @@ public class TrailActivity extends Activity {
 		}
 	}
 
-	class TrailData extends AsyncTask<Void, Void, Document> {
+	private class TrailData extends AsyncTask<Void, Void, Document> {
 		private Exception exception;
 		private Document document;
 		private static final String TAG = "TrailData";
@@ -219,7 +219,7 @@ public class TrailActivity extends Activity {
 			Circle circle = map.addCircle(circleOptions);
 
 			if (result.getElementsByTagName("coordinates").getLength() >= 0) {
-				String path = result.getElementsByTagName("coordinates").item(2).getFirstChild().getNodeValue();
+				String path = result.getElementsByTagName("coordinates").item(48).getFirstChild().getNodeValue();
 				NodeList coordinates = result.getElementsByTagName("coordinates");
 
 				ArrayList<LatLng> coords = new ArrayList<LatLng>();
