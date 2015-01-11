@@ -20,9 +20,10 @@ public class AboutActivity extends Activity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.about_main);
         String about = "<h1>About</h1><p>This mobile application is created during the HACK UCSC 2015 competition\n" +
-                "to create a fast mobile interface to display trails and points of interest\n" +
+                "to create a mobile interface to display trails and points of interest\n" +
                 "in the Watsonville Wetlands as a project for the Watsonville Wetlands\n" +
-                "Watch.</p>" +
+                "Watch. As an initial prototype but now a mobile map that can be opened from a browser," +
+                "we also created an interactive map to display data. We used Google Maps API for both applications. </p>" +
                 "<p>Authors:<br />" +
                 "Android Application Developer: Edmond Lee<br />" +
                 "Web Application Developers: Matthew Smithey, Andre Nuygen Van Qui, Sergy Pretensky<br />" +
@@ -39,5 +40,6 @@ public class AboutActivity extends Activity {
                 "</blockquote></p>";
         tv = (TextView)findViewById(R.id.about);
         tv.setText(Html.fromHtml(about));
+        tv.setMovementMethod(LinkMovementMethod.getInstance());
     }
 }

@@ -1,10 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">trailapp</string>
+    <string name="app_name">Wetlands Watcher</string>
     <string name="noconnectionID">No Internet Connection!</string>
     <string name="satellite_menu_option">Enable Satellite Mode</string>
     <string name="about_menu_option">About this App</string>
     <string name="showMarkers">Show Points of Interest</string>
     <string name="showTrails">Display the trails</string>
-    <string name="wait">Please wait...</string>
 </resources>

@@ -10,17 +10,16 @@ import android.os.AsyncTask;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.Menu;
+import android.view.MenuItem;
+import android.widget.Toast;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.HttpURLConnection;
-import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.concurrent.ExecutionException;
 
-import android.view.MenuItem;
-import android.widget.Toast;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.MapFragment;
@@ -66,19 +65,8 @@ public class TrailActivity extends Activity {
 		Marker watsonville = map.addMarker(new MarkerOptions().position(WATSONVILLE[0])
 				.title("Watsonville"));
 
-		// Move the camera instantly to Watsonville with a zoom of 14.
-		map.moveCamera(CameraUpdateFactory.newLatLngZoom(WATSONVILLE[0], 14));
-
-		//Draw shapes onto the map
-		CircleOptions circleOptions = new CircleOptions()
-				.center(WATSONVILLE[0])
-				.radius(100)
-				.fillColor(0x40ff0000)  //semi-transparent
-				.strokeColor(Color.BLUE)
-				.strokeWidth(5);
-
-		// Get back the mutable Circle
-		Circle circle = map.addCircle(circleOptions);
+		// Move the camera instantly to Watsonville with a zoom of 13.
+		map.moveCamera(CameraUpdateFactory.newLatLngZoom(WATSONVILLE[0], 13));
 	}
 
 	public void showMarkers() {
@@ -134,7 +122,6 @@ public class TrailActivity extends Activity {
 				showMarkers();
 				return true;
 			case R.id.showTrails:
-				Toast.makeText(this,R.string.wait, Toast.LENGTH_SHORT).show();
 				try {
 					showTrails();
 				} catch (ExecutionException e) {
@@ -166,7 +153,6 @@ public class TrailActivity extends Activity {
 		if (networkInfo != null && networkInfo.isConnected()) {
 			TrailData getURL = (TrailData) new TrailData(); //Need to use ASyncTask class cannot do this on main UI thread
 			doc = getURL.execute().get();
-
 		}
 	}
 
@@ -208,31 +194,26 @@ public class TrailActivity extends Activity {
 		}
 
 		protected void onPostExecute(Document result) {  // result is data returned by doInBackground
-			CircleOptions circleOptions = new CircleOptions()
-					.center(WATSONVILLE[0])
-					.radius(200)
-					.fillColor(0x40ff0000)  //semi-transparent
-					.strokeColor(Color.BLUE)
-					.strokeWidth(5);
-
-			// Get back the mutable Circle
-			Circle circle = map.addCircle(circleOptions);
-
 			if (result.getElementsByTagName("coordinates").getLength() >= 0) {
-				String path = result.getElementsByTagName("coordinates").item(48).getFirstChild().getNodeValue();
+				//Get the path data to parse
 				NodeList coordinates = result.getElementsByTagName("coordinates");
 
-				ArrayList<LatLng> coords = new ArrayList<LatLng>();
-				String[] lngLat = path.split(",");
-				for (int i = 0; i < lngLat.length - 2; i = i + 2) { //lat actually comes second
-					String lat = lngLat[i + 1], lng = lngLat[i].substring(lngLat[i].indexOf('-'));
-					//We can obtain the coordinates by doing some simple String operations and parsing the strings to numbers
-					LatLng obj = new LatLng(Double.parseDouble(lat),Double.parseDouble(lng));
-					coords.add(obj);
+				//Draw all the trails!
+				for(int index = 48; index < 111; index++) {
+					String path = coordinates.item(index).getFirstChild().getNodeValue();
+
+					ArrayList<LatLng> coords = new ArrayList<LatLng>();
+					String[] lngLat = path.split(",");
+					for (int i = 0; i < lngLat.length - 2; i = i + 2) { //lat actually comes second
+						String lat = lngLat[i + 1], lng = lngLat[i].substring(lngLat[i].indexOf('-'));
+						//We can obtain the coordinates by doing some simple String operations and parsing the strings to numbers
+						LatLng obj = new LatLng(Double.parseDouble(lat), Double.parseDouble(lng));
+						coords.add(obj);
+					}
+					//Now we can draw the polyline in red!
+					PolylineOptions ops = new PolylineOptions().addAll(coords).color(Color.RED);
+					Polyline polyline = map.addPolyline(ops);
 				}
-				//Now we can draw the polyline in red!
-				PolylineOptions ops = new PolylineOptions().addAll(coords).color(Color.RED);
-				Polyline polyline = map.addPolyline(ops);
 			}
 		}
 	}
