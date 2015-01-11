@@ -66,7 +66,7 @@ public class TrailActivity extends Activity {
 				.title("Watsonville"));
 
 		// Move the camera instantly to Watsonville with a zoom of 13.
-		map.moveCamera(CameraUpdateFactory.newLatLngZoom(WATSONVILLE[0], 13));
+		map.moveCamera(CameraUpdateFactory.newLatLngZoom(WATSONVILLE[0], 14));
 	}
 
 	public void showMarkers() {
@@ -197,11 +197,29 @@ public class TrailActivity extends Activity {
 			if (result.getElementsByTagName("coordinates").getLength() >= 0) {
 				//Get the path data to parse
 				NodeList coordinates = result.getElementsByTagName("coordinates");
-				int index = 8;
+				int index = 0;
 				ArrayList<LatLng> coords = new ArrayList<LatLng>();
 
-				//Place Markers for the Data
-				for (;index < 34; index++) {
+				//Place Markers for Restrooms
+				for (;index < 2; index++) {
+					String path = coordinates.item(index).getFirstChild().getNodeValue();
+
+					coords.clear();
+					String[] lngLat = path.split(","); //split the coordinates by a comma to get individual coordinates
+					for (int i = 0; i < lngLat.length - 2; i = i + 2) { //lat actually comes second
+						String lat = lngLat[i + 1], lng = lngLat[i].substring(lngLat[i].indexOf('-'));
+						//We can obtain the coordinates by doing some simple String operations and parsing the strings to numbers
+						LatLng obj = new LatLng(Double.parseDouble(lat), Double.parseDouble(lng));
+						coords.add(obj);
+					}
+					for(LatLng l: coords) {
+						Marker entrance_marker = map.addMarker(new MarkerOptions().position(l).title("Restroom").icon(BitmapDescriptorFactory.fromResource(R.drawable.bathrooms)));
+						//add the markers using the trail access icon found in the organization's website
+					}
+				}
+
+				//Place Markers for Trail Entrances
+				for (index = 8;index < 42; index++) {
 					String path = coordinates.item(index).getFirstChild().getNodeValue();
 
 					coords.clear();
@@ -214,6 +232,24 @@ public class TrailActivity extends Activity {
 					}
 					for(LatLng l: coords) {
 						Marker entrance_marker = map.addMarker(new MarkerOptions().position(l).title("Trail Entrance").icon(BitmapDescriptorFactory.fromResource(R.drawable.sloughtrailentrances)));
+						//add the markers using the trail access icon found in the organization's website
+					}
+				}
+
+				//Place Markers for Restrooms
+				for(index = 42; index < 48; index++) {
+					String path = coordinates.item(index).getFirstChild().getNodeValue();
+
+					coords.clear();
+					String[] lngLat = path.split(","); //split the coordinates by a comma to get individual coordinates
+					for (int i = 0; i < lngLat.length - 2; i = i + 2) { //lat actually comes second
+						String lat = lngLat[i + 1], lng = lngLat[i].substring(lngLat[i].indexOf('-'));
+						//We can obtain the coordinates by doing some simple String operations and parsing the strings to numbers
+						LatLng obj = new LatLng(Double.parseDouble(lat), Double.parseDouble(lng));
+						coords.add(obj);
+					}
+					for(LatLng l: coords) {
+						Marker entrance_marker = map.addMarker(new MarkerOptions().position(l).title("Parking").icon(BitmapDescriptorFactory.fromResource(R.drawable.sloughtrailparking)));
 						//add the markers using the trail access icon found in the organization's website
 					}
 				}
