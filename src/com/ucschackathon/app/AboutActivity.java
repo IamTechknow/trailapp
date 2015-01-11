@@ -1,11 +1,8 @@
 package com.ucschackathon.app;
 
 import android.app.Activity;
-import android.content.Context;
 import android.os.Bundle;
 import android.text.method.LinkMovementMethod;
-import android.util.AttributeSet;
-import android.view.View;
 import android.text.Html;
 import android.widget.TextView;
 

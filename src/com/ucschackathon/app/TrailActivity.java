@@ -197,13 +197,33 @@ public class TrailActivity extends Activity {
 			if (result.getElementsByTagName("coordinates").getLength() >= 0) {
 				//Get the path data to parse
 				NodeList coordinates = result.getElementsByTagName("coordinates");
+				int index = 8;
+				ArrayList<LatLng> coords = new ArrayList<LatLng>();
 
-				//Draw all the trails!
-				for(int index = 48; index < 111; index++) {
+				//Place Markers for the Data
+				for (;index < 34; index++) {
 					String path = coordinates.item(index).getFirstChild().getNodeValue();
 
-					ArrayList<LatLng> coords = new ArrayList<LatLng>();
-					String[] lngLat = path.split(",");
+					coords.clear();
+					String[] lngLat = path.split(","); //split the coordinates by a comma to get individual coordinates
+					for (int i = 0; i < lngLat.length - 2; i = i + 2) { //lat actually comes second
+						String lat = lngLat[i + 1], lng = lngLat[i].substring(lngLat[i].indexOf('-'));
+						//We can obtain the coordinates by doing some simple String operations and parsing the strings to numbers
+						LatLng obj = new LatLng(Double.parseDouble(lat), Double.parseDouble(lng));
+						coords.add(obj);
+					}
+					for(LatLng l: coords) {
+						Marker entrance_marker = map.addMarker(new MarkerOptions().position(l).title("Trail Entrance").icon(BitmapDescriptorFactory.fromResource(R.drawable.sloughtrailentrances)));
+						//add the markers using the trail access icon found in the organization's website
+					}
+				}
+
+				//Draw all the trails!
+				for(index = 48; index < 111; index++) {
+					String path = coordinates.item(index).getFirstChild().getNodeValue();
+
+					coords.clear(); //fill new data, clear array
+					String[] lngLat = path.split(","); //split the coordinates by a comma to get individual coordinates
 					for (int i = 0; i < lngLat.length - 2; i = i + 2) { //lat actually comes second
 						String lat = lngLat[i + 1], lng = lngLat[i].substring(lngLat[i].indexOf('-'));
 						//We can obtain the coordinates by doing some simple String operations and parsing the strings to numbers
