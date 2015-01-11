@@ -2,6 +2,7 @@ package com.ucschackathon.app;
 
 import android.app.Activity;
 import android.content.Context;
+import android.content.Intent;
 import android.graphics.Color;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
@@ -21,6 +22,11 @@ import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.MapFragment;
 import com.google.android.gms.maps.model.*;
 
+/**
+ * This is the mobile application for Android developed by Team Trail Hackers for the HACK UCSC 2015 Competition
+ * (see hackucsc.com)
+ */
+
 public class TrailActivity extends Activity {
 
 	private static final LatLng[] WATSONVILLE = {new LatLng(36.9154033, -121.7694327),
@@ -32,7 +38,6 @@ public class TrailActivity extends Activity {
 			new LatLng(36.912601, -121.770290),
 			new LatLng(36.9016682,-121.7845458),
 	};
-
 
 	private static final String theKML = "http://www.watsonvillewetlandswatch.org/sloughs/EntireMapWeb.kml";
 
@@ -51,10 +56,7 @@ public class TrailActivity extends Activity {
 				.title("Watsonville"));
 
 		// Move the camera instantly to hamburg with a zoom of 15.
-		map.moveCamera(CameraUpdateFactory.newLatLngZoom(WATSONVILLE[0], 15));
-
-		// Zoom in, animating the camera.
-		map.animateCamera(CameraUpdateFactory.zoomTo(16), 2000, null);
+		map.moveCamera(CameraUpdateFactory.newLatLngZoom(WATSONVILLE[0], 14));
 
 		//Draw shapes onto the map
 		CircleOptions circleOptions = new CircleOptions()
@@ -110,13 +112,30 @@ public class TrailActivity extends Activity {
 
 	public void showMarkers() {
 		Marker[] markers = {
-				map.addMarker(new MarkerOptions().position(WATSONVILLE[1]).title("Nest of Osprey")),
-				map.addMarker(new MarkerOptions().position(WATSONVILLE[2]).title("In the 1800s")),
-				map.addMarker(new MarkerOptions().position(WATSONVILLE[3]).title("American White Pelican")),
-				map.addMarker(new MarkerOptions().position(WATSONVILLE[4]).title("Tarplant")),
-				map.addMarker(new MarkerOptions().position(WATSONVILLE[5]).title("Wetland restoration")),
-				map.addMarker(new MarkerOptions().position(WATSONVILLE[6]).title("Cattails")),
-				map.addMarker(new MarkerOptions().position(WATSONVILLE[7]).title("Ohlone Indian")),
+				map.addMarker(new MarkerOptions().position(WATSONVILLE[1]).title("Nest of Osprey")
+				.snippet("Human beings have left their mark on the Watsonville Wetlands for thousands of years, " +
+						"however, the pace of the transformations resulting from human contact has greatly " +
+						"accelerated in the past 200 years. The first peoples, the Calendaruc and other " +
+						"Ohlone tribes were hunters and gatherers. They left their mark on the land by " +
+						"setting fire to the land after harvesting seeds in autumn thereby discourageing " +
+						"the growth of large woody plants promoted regrowth of the perennial grasses and " +
+						"other plants they used. (Watsonville Wetlands Watch, Wikipedia)")),
+				map.addMarker(new MarkerOptions().position(WATSONVILLE[2]).title("In the 1800s")
+				.snippet("")),
+				map.addMarker(new MarkerOptions().position(WATSONVILLE[3]).title("American White Pelican")
+				.snippet("")),
+				map.addMarker(new MarkerOptions().position(WATSONVILLE[4]).title("Tarplant")
+				.snippet("")),
+				map.addMarker(new MarkerOptions().position(WATSONVILLE[5]).title("Wetland restoration")
+				.snippet("")),
+				map.addMarker(new MarkerOptions().position(WATSONVILLE[6]).title("Cattails")
+				.snippet("This plant is one of the most common plants growing in freshwater wetlands.\n " +
+						"It has long, flat light-green leaves and creeping roots. The flowers are at the\n " +
+						"end of a long stalk that looks like a hot dog on a stick. The fuzzy down that hangs\n" +
+						" on the cattails carries the seeds in the wind.\n " +
+						"Cattails grow in fresh water in every finger of the Watsonville Slough system.\n")),
+				map.addMarker(new MarkerOptions().position(WATSONVILLE[7]).title("Ohlone Indian")
+				.snippet("")),
 		};
 	}
 
@@ -144,7 +163,8 @@ public class TrailActivity extends Activity {
 				showMarkers();
 				return true;
 			case R.id.about: //Show about screen
-				//showHelp();
+				Intent intent = new Intent(this, AboutActivity.class);
+				startActivity(intent);
 				return true;
 			default:
 				return super.onOptionsItemSelected(item);
