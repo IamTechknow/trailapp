@@ -20,6 +20,7 @@ import android.widget.Toast;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.MapFragment;
+import com.google.android.gms.maps.MapView;
 import com.google.android.gms.maps.model.*;
 
 /**
@@ -42,6 +43,7 @@ public class TrailActivity extends Activity {
 	private static final String theKML = "http://www.watsonvillewetlandswatch.org/sloughs/EntireMapWeb.kml";
 
 	private GoogleMap map;
+	private MapView mapView;
 	private InputStream is;
 	private boolean inSatellite;
 
@@ -51,6 +53,8 @@ public class TrailActivity extends Activity {
 		setContentView(R.layout.main);
 		map = ((MapFragment) getFragmentManager().findFragmentById(R.id.map))
 				.getMap();
+		map.setMyLocationEnabled(true); //allow a user to center map to their location
+		map.getUiSettings().setZoomControlsEnabled(true); //allow zoom controls in this app
 
 		Marker watsonville = map.addMarker(new MarkerOptions().position(WATSONVILLE[0])
 				.title("Watsonville"));
