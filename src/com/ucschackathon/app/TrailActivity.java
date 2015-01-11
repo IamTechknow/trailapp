@@ -6,6 +6,7 @@ import android.content.Intent;
 import android.graphics.Color;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.Menu;
@@ -13,7 +14,10 @@ import android.view.Menu;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.ArrayList;
+import java.util.concurrent.ExecutionException;
 
 import android.view.MenuItem;
 import android.widget.Toast;
@@ -22,6 +26,13 @@ import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.MapFragment;
 import com.google.android.gms.maps.MapView;
 import com.google.android.gms.maps.model.*;
+import org.w3c.dom.Document;
+import org.w3c.dom.NodeList;
+import org.xml.sax.SAXException;
+
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
 
 /**
  * This is the mobile application for Android developed by Team Trail Hackers for the HACK UCSC 2015 Competition
@@ -38,11 +49,11 @@ public class TrailActivity extends Activity {
 			new LatLng(36.912601, -121.770290),
 			new LatLng(36.9016682,-121.7845458),
 	};
-	private static final String theKML = "http://www.watsonvillewetlandswatch.org/sloughs/EntireMapWeb.kml";
 	private GoogleMap map;
 	private MapView mapView;
 	private InputStream is;
 	private boolean inSatellite;
+	private Document doc;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -68,34 +79,6 @@ public class TrailActivity extends Activity {
 
 		// Get back the mutable Circle
 		Circle circle = map.addCircle(circleOptions);
-
-		/*Get access to the KML file by setting up an URL connection
-
-		ConnectivityManager connMgr = (ConnectivityManager)
-				getSystemService(Context.CONNECTIVITY_SERVICE);
-		NetworkInfo networkInfo = connMgr.getActiveNetworkInfo();
-		if (networkInfo != null && networkInfo.isConnected()) {
-			try {
-				URL url = new URL(theKML);
-				HttpURLConnection conn = (HttpURLConnection) url.openConnection();
-				conn.setReadTimeout(10000 // milliseconds );
-				conn.setConnectTimeout(15000 // milliseconds );
-				conn.setRequestMethod("GET");
-				conn.setDoInput(true);
-				// Starts the query
-				conn.connect();
-				int response = conn.getResponseCode();
-				Log.d("TrailActivity", "The response is: " + response);
-				is = conn.getInputStream();
-				//Code to use the kml file here
-
-			}
-			catch (IOException e) {
-				e.printStackTrace();
-			}
-		}
-		else //Let the user know there's no connection
-			Toast.makeText(this,R.string.noconnectionID, Toast.LENGTH_SHORT).show(); */
 	}
 
 	public void showMarkers() {
@@ -150,12 +133,107 @@ public class TrailActivity extends Activity {
 			case R.id.showMarkers:
 				showMarkers();
 				return true;
+			case R.id.showTrails:
+				Toast.makeText(this,R.string.wait, Toast.LENGTH_SHORT).show();
+				try {
+					showTrails();
+				} catch (ExecutionException e) {
+					e.printStackTrace();
+				} catch (InterruptedException e) {
+					e.printStackTrace();
+				}
+				return true;
 			case R.id.about: //Show about screen
 				Intent intent = new Intent(this, AboutActivity.class);
 				startActivity(intent);
 				return true;
 			default:
 				return super.onOptionsItemSelected(item);
+		}
+	}
+
+	/**
+	 * All the work to parse the KML data is done in the below method. The Document object is a
+	 * DOM presentation of the KML which allows us to use Javascript techniques to navigate through the KML file and
+	 * get what we want.
+	 */
+
+	public void showTrails() throws ExecutionException, InterruptedException {
+		//Check Internet Connection
+		ConnectivityManager connMgr = (ConnectivityManager)
+				getSystemService(Context.CONNECTIVITY_SERVICE);
+		NetworkInfo networkInfo = connMgr.getActiveNetworkInfo();
+		if (networkInfo != null && networkInfo.isConnected()) {
+			TrailData getURL = (TrailData) new TrailData(); //Need to use ASyncTask class cannot do this on main UI thread
+			doc = getURL.execute().get();
+
+		}
+	}
+
+	class TrailData extends AsyncTask<Void, Void, Document> {
+		private Exception exception;
+		private Document document;
+		private static final String TAG = "TrailData";
+		private static final String theKML = "http://www.watsonvillewetlandswatch.org/sloughs/EntireMapWeb.kml";
+
+		@Override
+		protected Document doInBackground(Void... params) {
+			try {
+				HttpURLConnection conn = (HttpURLConnection) new URL(theKML).openConnection();
+				conn.setReadTimeout(200); // milliseconds
+				conn.setConnectTimeout(500); // milliseconds
+				conn.setRequestMethod("GET");
+				conn.setDoInput(true);
+				// Starts the query to get the KML
+				conn.connect();
+				int response = conn.getResponseCode();
+				Log.d(TAG, "The response is: " + response);
+				InputStream inputStream = conn.getInputStream();
+
+				DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
+				DocumentBuilder db = dbf.newDocumentBuilder();
+				document = db.parse(inputStream);
+				return document;
+			}
+			catch (IOException e) {
+				e.printStackTrace();
+			}
+			catch (ParserConfigurationException e) {
+				e.printStackTrace();
+			}
+			catch (SAXException e) {
+				e.printStackTrace();
+			}
+			return null;
+		}
+
+		protected void onPostExecute(Document result) {  // result is data returned by doInBackground
+			CircleOptions circleOptions = new CircleOptions()
+					.center(WATSONVILLE[0])
+					.radius(200)
+					.fillColor(0x40ff0000)  //semi-transparent
+					.strokeColor(Color.BLUE)
+					.strokeWidth(5);
+
+			// Get back the mutable Circle
+			Circle circle = map.addCircle(circleOptions);
+
+			if (result.getElementsByTagName("coordinates").getLength() >= 0) {
+				String path = result.getElementsByTagName("coordinates").item(2).getFirstChild().getNodeValue();
+				NodeList coordinates = result.getElementsByTagName("coordinates");
+
+				ArrayList<LatLng> coords = new ArrayList<LatLng>();
+				String[] lngLat = path.split(",");
+				for (int i = 0; i < lngLat.length - 2; i = i + 2) { //lat actually comes second
+					String lat = lngLat[i + 1], lng = lngLat[i].substring(lngLat[i].indexOf('-'));
+					//We can obtain the coordinates by doing some simple String operations and parsing the strings to numbers
+					LatLng obj = new LatLng(Double.parseDouble(lat),Double.parseDouble(lng));
+					coords.add(obj);
+				}
+				//Now we can draw the polyline in red!
+				PolylineOptions ops = new PolylineOptions().addAll(coords).color(Color.RED);
+				Polyline polyline = map.addPolyline(ops);
+			}
 		}
 	}
 }

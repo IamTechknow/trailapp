@@ -5,4 +5,6 @@
     <string name="satellite_menu_option">Enable Satellite Mode</string>
     <string name="about_menu_option">About this App</string>
     <string name="showMarkers">Show Points of Interest</string>
+    <string name="showTrails">Display the trails</string>
+    <string name="wait">Please wait...</string>
 </resources>

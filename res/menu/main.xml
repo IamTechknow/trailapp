@@ -7,6 +7,9 @@
     <item android:id="@+id/showMarkers"
           android:title="@string/showMarkers"
             />
+    <item android:id="@+id/showTrails"
+          android:title="@string/showTrails"
+           />
     <item android:id="@+id/about"
           android:title="@string/about_menu_option"
           />
