@@ -11,7 +11,6 @@ import android.os.Bundle;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.widget.Toast;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -65,36 +64,19 @@ public class TrailActivity extends Activity {
 		Marker watsonville = map.addMarker(new MarkerOptions().position(WATSONVILLE[0])
 				.title("Watsonville"));
 
-		// Move the camera instantly to Watsonville with a zoom of 13.
+		// Move the camera instantly to Watsonville with a zoom of 14.
 		map.moveCamera(CameraUpdateFactory.newLatLngZoom(WATSONVILLE[0], 14));
 	}
 
 	public void showMarkers() {
 		Marker[] markers = {
-				map.addMarker(new MarkerOptions().position(WATSONVILLE[1]).title("Nest of Osprey")
-				.snippet("Human beings have left their mark on the Watsonville Wetlands for thousands of years, " +
-						"however, the pace of the transformations resulting from human contact has greatly " +
-						"accelerated in the past 200 years. The first peoples, the Calendaruc and other " +
-						"Ohlone tribes were hunters and gatherers. They left their mark on the land by " +
-						"setting fire to the land after harvesting seeds in autumn thereby discourageing " +
-						"the growth of large woody plants promoted regrowth of the perennial grasses and " +
-						"other plants they used. (Watsonville Wetlands Watch, Wikipedia)")),
-				map.addMarker(new MarkerOptions().position(WATSONVILLE[2]).title("In the 1800s")
-				.snippet("")),
-				map.addMarker(new MarkerOptions().position(WATSONVILLE[3]).title("American White Pelican")
-				.snippet("")),
-				map.addMarker(new MarkerOptions().position(WATSONVILLE[4]).title("Tarplant")
-				.snippet("")),
-				map.addMarker(new MarkerOptions().position(WATSONVILLE[5]).title("Wetland restoration")
-				.snippet("")),
-				map.addMarker(new MarkerOptions().position(WATSONVILLE[6]).title("Cattails")
-				.snippet("This plant is one of the most common plants growing in freshwater wetlands.\n " +
-						"It has long, flat light-green leaves and creeping roots. The flowers are at the\n " +
-						"end of a long stalk that looks like a hot dog on a stick. The fuzzy down that hangs\n" +
-						" on the cattails carries the seeds in the wind.\n " +
-						"Cattails grow in fresh water in every finger of the Watsonville Slough system.\n")),
-				map.addMarker(new MarkerOptions().position(WATSONVILLE[7]).title("Ohlone Indian")
-				.snippet("")),
+				map.addMarker(new MarkerOptions().position(WATSONVILLE[1]).title("Nest of Osprey")),
+				map.addMarker(new MarkerOptions().position(WATSONVILLE[2]).title("In the 1800s")),
+				map.addMarker(new MarkerOptions().position(WATSONVILLE[3]).title("American White Pelican")),
+				map.addMarker(new MarkerOptions().position(WATSONVILLE[4]).title("Tarplant")),
+				map.addMarker(new MarkerOptions().position(WATSONVILLE[5]).title("Wetland restoration")),
+				map.addMarker(new MarkerOptions().position(WATSONVILLE[6]).title("Cattails")),
+				map.addMarker(new MarkerOptions().position(WATSONVILLE[7]).title("Ohlone Indian")),
 		};
 	}
 
