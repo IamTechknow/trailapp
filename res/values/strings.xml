@@ -6,4 +6,24 @@
     <string name="about_menu_option">About this App</string>
     <string name="showMarkers">Show Points of Interest</string>
     <string name="showTrails">Display the trails</string>
+    <string name="aboutText"> <!-- Use CDATA to prevent android from parsing html tags -->
+        <![CDATA[
+        <h1>About</h1><p>This mobile application is created during the HACK UCSC 2015 competition
+        to create a mobile interface to display trails and points of interest in the Watsonville Wetlands as a project for the Watsonville Wetlands
+        Watch. As an initial prototype but now a mobile map that can be opened from a browser, we also created an interactive map to display data. We used Google Maps API for both applications. </p>
+        <p>Authors:<br />
+        Android Application Developer: Edmond Lee<br />
+        Web Application Developers: Matthew Smithey, Andre Nuygen Van Qui, Sergy Pretensky<br />
+            Other Team Members: Rosa Ayala </p><br />
+        <p>Watsonville Wetlands Watch members: Noelle Antolin, Darren </p>
+        <p><a href="https://github.com/IamTechknow/trailapp">Trail App on Github</a><br />
+            <a href="http://watsonvillewetlandswatch.org/">Watsonville Wetlands Watch Site</a></p>
+        <p>About Watsonville Wetlands Watch: <br />
+        <blockquote>
+        &quot;Watsonville Wetlands Watch advocates for wetland issues, educates elementary, middle, and high school students,
+        restores degraded habitats, preserves what remains whole, and teaches appreciation for the unique beauty and life
+        of the Pajaro Valley wetlands. In cooperation with numerous other agencies, we support studies of and planning
+        for these sites.&quot;</blockquote></p>
+        ]]>
+    </string>
 </resources>

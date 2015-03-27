@@ -22,7 +22,6 @@ import java.util.concurrent.ExecutionException;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.MapFragment;
-import com.google.android.gms.maps.MapView;
 import com.google.android.gms.maps.model.*;
 import org.w3c.dom.Document;
 import org.w3c.dom.NodeList;
@@ -48,8 +47,6 @@ public class TrailActivity extends Activity {
 			new LatLng(36.9016682,-121.7845458),
 	};
 	private GoogleMap map;
-	private MapView mapView;
-	private InputStream is;
 	private boolean inSatellite;
 	private Document doc;
 
@@ -57,12 +54,12 @@ public class TrailActivity extends Activity {
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.main);
+		getFragmentManager().findFragmentById(R.id.map).setRetainInstance(true); //allow map to survive screen rotation
 		map = ((MapFragment) getFragmentManager().findFragmentById(R.id.map)).getMap();
 		map.setMyLocationEnabled(true); //allow a user to center map to their location
 		map.getUiSettings().setZoomControlsEnabled(true); //allow zoom controls in this app
 
-		Marker watsonville = map.addMarker(new MarkerOptions().position(WATSONVILLE[0])
-				.title("Watsonville"));
+		Marker watsonville = map.addMarker(new MarkerOptions().position(WATSONVILLE[0]).title("Watsonville"));
 
 		// Move the camera instantly to Watsonville with a zoom of 14.
 		map.moveCamera(CameraUpdateFactory.newLatLngZoom(WATSONVILLE[0], 14));
@@ -132,14 +129,11 @@ public class TrailActivity extends Activity {
 		ConnectivityManager connMgr = (ConnectivityManager)
 				getSystemService(Context.CONNECTIVITY_SERVICE);
 		NetworkInfo networkInfo = connMgr.getActiveNetworkInfo();
-		if (networkInfo != null && networkInfo.isConnected()) {
-			TrailData getURL = (TrailData) new TrailData(); //Need to use ASyncTask class cannot do this on main UI thread
-			doc = getURL.execute().get();
-		}
+		if (networkInfo != null && networkInfo.isConnected())
+			doc = new TrailData().execute().get(); //Need to use ASyncTask class cannot do this on main UI thread
 	}
 
 	private class TrailData extends AsyncTask<Void, Void, Document> {
-		private Exception exception;
 		private Document document;
 		private static final String TAG = "TrailData";
 		private static final String theKML = "http://www.watsonvillewetlandswatch.org/sloughs/EntireMapWeb.kml";
