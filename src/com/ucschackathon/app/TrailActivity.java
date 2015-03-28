@@ -142,8 +142,8 @@ public class TrailActivity extends Activity {
 		protected Document doInBackground(Void... params) {
 			try {
 				HttpURLConnection conn = (HttpURLConnection) new URL(theKML).openConnection();
-				conn.setReadTimeout(200); // milliseconds
-				conn.setConnectTimeout(500); // milliseconds
+				conn.setReadTimeout(500); // milliseconds
+				conn.setConnectTimeout(1000); // milliseconds. If you get null object exceptions, ensure socket has not time out
 				conn.setRequestMethod("GET");
 				conn.setDoInput(true);
 				// Starts the query to get the KML
@@ -231,7 +231,7 @@ public class TrailActivity extends Activity {
 				}
 
 				//Draw all the trails!
-				for(index = 48; index < 111; index++) {
+				for(index = 48; index < 113; index++) {
 					String path = coordinates.item(index).getFirstChild().getNodeValue();
 
 					coords.clear(); //fill new data, clear array
@@ -242,8 +242,21 @@ public class TrailActivity extends Activity {
 						LatLng obj = new LatLng(Double.parseDouble(lat), Double.parseDouble(lng));
 						coords.add(obj);
 					}
-					//Now we can draw the polyline in red!
-					PolylineOptions ops = new PolylineOptions().addAll(coords).color(Color.RED);
+					//Now we can draw the polyline!
+					int c;
+					switch(index) { //Draw trails with right color
+						case 62: case 64: case 74: case 75: case 76: case 77: case 78:
+						case 86: case 87: case 110:
+							c = Color.GREEN;
+							break;
+						case 112:
+							c = Color.BLUE;
+							break;
+						default:
+							c = Color.RED;
+							break;
+					}
+					PolylineOptions ops = new PolylineOptions().addAll(coords).color(c);
 					Polyline polyline = map.addPolyline(ops);
 				}
 			}
