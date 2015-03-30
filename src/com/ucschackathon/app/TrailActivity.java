@@ -37,13 +37,13 @@ import javax.xml.parsers.ParserConfigurationException;
  */
 
 public class TrailActivity extends Activity {
-	private static final LatLng[] WATSONVILLE = {new LatLng(36.9154033, -121.7694327),
+	private static final LatLng[] WATSONVILLE = {
 			new LatLng(36.911, -121.803),
-			new LatLng(36.9016682,-121.7845458),
+			new LatLng(36.905060, -121.785410),
 			new LatLng(36.913525, -121.780813),
 			new LatLng(36.911101, -121.776457),
 			new LatLng(36.913507, -121.768687),
-			new LatLng(36.912601, -121.770290),
+			new LatLng(36.913690, -121.770600),
 			new LatLng(36.9016682,-121.7845458),
 	};
 	private GoogleMap map;
@@ -59,21 +59,19 @@ public class TrailActivity extends Activity {
 		map.setMyLocationEnabled(true); //allow a user to center map to their location
 		map.getUiSettings().setZoomControlsEnabled(true); //allow zoom controls in this app
 
-		Marker watsonville = map.addMarker(new MarkerOptions().position(WATSONVILLE[0]).title("Watsonville"));
-
 		// Move the camera instantly to Watsonville with a zoom of 14.
 		map.moveCamera(CameraUpdateFactory.newLatLngZoom(WATSONVILLE[0], 14));
 	}
 
 	public void showMarkers() {
 		Marker[] markers = {
-				map.addMarker(new MarkerOptions().position(WATSONVILLE[1]).title("Nest of Osprey")),
-				map.addMarker(new MarkerOptions().position(WATSONVILLE[2]).title("In the 1800s")),
-				map.addMarker(new MarkerOptions().position(WATSONVILLE[3]).title("American White Pelican")),
-				map.addMarker(new MarkerOptions().position(WATSONVILLE[4]).title("Tarplant")),
-				map.addMarker(new MarkerOptions().position(WATSONVILLE[5]).title("Wetland restoration")),
-				map.addMarker(new MarkerOptions().position(WATSONVILLE[6]).title("Cattails")),
-				map.addMarker(new MarkerOptions().position(WATSONVILLE[7]).title("Ohlone Indian")),
+				map.addMarker(new MarkerOptions().position(WATSONVILLE[0]).title("Nest of Osprey")),
+				map.addMarker(new MarkerOptions().position(WATSONVILLE[1]).title("DFG Outlook")),
+				map.addMarker(new MarkerOptions().position(WATSONVILLE[2]).title("Struve Slough")),
+				map.addMarker(new MarkerOptions().position(WATSONVILLE[3]).title("Tarplant Hill")),
+				map.addMarker(new MarkerOptions().position(WATSONVILLE[4]).title("Wetland restoration")),
+				map.addMarker(new MarkerOptions().position(WATSONVILLE[5]).title("Nature Center")),
+				map.addMarker(new MarkerOptions().position(WATSONVILLE[6]).title("Harkins Slough")),
 		};
 	}
 
@@ -257,7 +255,8 @@ public class TrailActivity extends Activity {
 							break;
 					}
 					PolylineOptions ops = new PolylineOptions().addAll(coords).color(c);
-					Polyline polyline = map.addPolyline(ops);
+					Polyline line = map.addPolyline(ops);
+					line.setWidth(5.0F);
 				}
 			}
 		}
