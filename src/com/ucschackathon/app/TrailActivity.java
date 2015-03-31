@@ -1,6 +1,6 @@
 package com.ucschackathon.app;
 
-import android.app.Activity;
+import android.support.v7.app.ActionBarActivity;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.Color;
@@ -11,6 +11,8 @@ import android.os.Bundle;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.widget.Toast;
+import android.support.v7.widget.Toolbar;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -36,7 +38,7 @@ import javax.xml.parsers.ParserConfigurationException;
  * (see hackucsc.com)
  */
 
-public class TrailActivity extends Activity {
+public class TrailActivity extends ActionBarActivity {
 	private static final LatLng[] WATSONVILLE = {
 			new LatLng(36.911, -121.803),
 			new LatLng(36.905060, -121.785410),
@@ -46,32 +48,36 @@ public class TrailActivity extends Activity {
 			new LatLng(36.913690, -121.770600),
 			new LatLng(36.9016682,-121.7845458),
 	};
-	private GoogleMap map;
-	private boolean inSatellite;
-	private Document doc;
+	private GoogleMap mMap;
+	private boolean mInSatellite;
+	private Toolbar mToolbar;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.main);
+		//Set up action bar
+		mToolbar = (Toolbar) findViewById(R.id.tool_bar);
+		setSupportActionBar(mToolbar);
+		//set up the map
 		getFragmentManager().findFragmentById(R.id.map).setRetainInstance(true); //allow map to survive screen rotation
-		map = ((MapFragment) getFragmentManager().findFragmentById(R.id.map)).getMap();
-		map.setMyLocationEnabled(true); //allow a user to center map to their location
-		map.getUiSettings().setZoomControlsEnabled(true); //allow zoom controls in this app
+		mMap = ((MapFragment) getFragmentManager().findFragmentById(R.id.map)).getMap();
+		mMap.setMyLocationEnabled(true); //allow a user to center map to their location
+		mMap.getUiSettings().setZoomControlsEnabled(true); //allow zoom controls in this app
 
 		// Move the camera instantly to Watsonville with a zoom of 14.
-		map.moveCamera(CameraUpdateFactory.newLatLngZoom(WATSONVILLE[0], 14));
+		mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(WATSONVILLE[3], 14));
 	}
 
 	public void showMarkers() {
 		Marker[] markers = {
-				map.addMarker(new MarkerOptions().position(WATSONVILLE[0]).title("Nest of Osprey")),
-				map.addMarker(new MarkerOptions().position(WATSONVILLE[1]).title("DFG Outlook")),
-				map.addMarker(new MarkerOptions().position(WATSONVILLE[2]).title("Struve Slough")),
-				map.addMarker(new MarkerOptions().position(WATSONVILLE[3]).title("Tarplant Hill")),
-				map.addMarker(new MarkerOptions().position(WATSONVILLE[4]).title("Wetland restoration")),
-				map.addMarker(new MarkerOptions().position(WATSONVILLE[5]).title("Nature Center")),
-				map.addMarker(new MarkerOptions().position(WATSONVILLE[6]).title("Harkins Slough")),
+				mMap.addMarker(new MarkerOptions().position(WATSONVILLE[0]).title("Nest of Osprey")),
+				mMap.addMarker(new MarkerOptions().position(WATSONVILLE[1]).title("DFG Outlook")),
+				mMap.addMarker(new MarkerOptions().position(WATSONVILLE[2]).title("Struve Slough")),
+				mMap.addMarker(new MarkerOptions().position(WATSONVILLE[3]).title("Tarplant Hill")),
+				mMap.addMarker(new MarkerOptions().position(WATSONVILLE[4]).title("Wetland restoration")),
+				mMap.addMarker(new MarkerOptions().position(WATSONVILLE[5]).title("Nature Center")),
+				mMap.addMarker(new MarkerOptions().position(WATSONVILLE[6]).title("Harkins Slough")),
 		};
 	}
 
@@ -86,13 +92,13 @@ public class TrailActivity extends Activity {
 		// Handle item selection
 		switch (item.getItemId()) {
 			case R.id.satellite_enabled: //Enable Satellite mode or disable
-				if(inSatellite) {
-					map.setMapType(GoogleMap.MAP_TYPE_NORMAL);
-					inSatellite = false;
+				if(mInSatellite) {
+					mMap.setMapType(GoogleMap.MAP_TYPE_NORMAL);
+					mInSatellite = false;
 				}
 				else {
-					map.setMapType(GoogleMap.MAP_TYPE_SATELLITE);
-					inSatellite = true;
+					mMap.setMapType(GoogleMap.MAP_TYPE_SATELLITE);
+					mInSatellite = true;
 				}
 				return true;
 			case R.id.showMarkers:
@@ -124,11 +130,14 @@ public class TrailActivity extends Activity {
 
 	public void showTrails() throws ExecutionException, InterruptedException {
 		//Check Internet Connection
+		Document doc;
 		ConnectivityManager connMgr = (ConnectivityManager)
 				getSystemService(Context.CONNECTIVITY_SERVICE);
 		NetworkInfo networkInfo = connMgr.getActiveNetworkInfo();
 		if (networkInfo != null && networkInfo.isConnected())
 			doc = new TrailData().execute().get(); //Need to use ASyncTask class cannot do this on main UI thread
+		else //Let the user know there's no internet access
+			Toast.makeText(this, R.string.noconnectionID,Toast.LENGTH_SHORT).show();
 	}
 
 	private class TrailData extends AsyncTask<Void, Void, Document> {
@@ -187,7 +196,7 @@ public class TrailActivity extends Activity {
 						coords.add(obj);
 					}
 					for(LatLng l: coords) {
-						Marker entrance_marker = map.addMarker(new MarkerOptions().position(l).title("Restroom").icon(BitmapDescriptorFactory.fromResource(R.drawable.bathrooms)));
+						Marker entrance_marker = mMap.addMarker(new MarkerOptions().position(l).title("Restroom").icon(BitmapDescriptorFactory.fromResource(R.drawable.bathrooms)));
 						//add the markers using the trail access icon found in the organization's website
 					}
 				}
@@ -205,7 +214,7 @@ public class TrailActivity extends Activity {
 						coords.add(obj);
 					}
 					for(LatLng l: coords) {
-						Marker entrance_marker = map.addMarker(new MarkerOptions().position(l).title("Trail Entrance").icon(BitmapDescriptorFactory.fromResource(R.drawable.sloughtrailentrances)));
+						Marker entrance_marker = mMap.addMarker(new MarkerOptions().position(l).title("Trail Entrance").icon(BitmapDescriptorFactory.fromResource(R.drawable.sloughtrailentrances)));
 						//add the markers using the trail access icon found in the organization's website
 					}
 				}
@@ -223,7 +232,7 @@ public class TrailActivity extends Activity {
 						coords.add(obj);
 					}
 					for(LatLng l: coords) {
-						Marker entrance_marker = map.addMarker(new MarkerOptions().position(l).title("Parking").icon(BitmapDescriptorFactory.fromResource(R.drawable.sloughtrailparking)));
+						Marker entrance_marker = mMap.addMarker(new MarkerOptions().position(l).title("Parking").icon(BitmapDescriptorFactory.fromResource(R.drawable.sloughtrailparking)));
 						//add the markers using the trail access icon found in the organization's website
 					}
 				}
@@ -255,7 +264,7 @@ public class TrailActivity extends Activity {
 							break;
 					}
 					PolylineOptions ops = new PolylineOptions().addAll(coords).color(c);
-					Polyline line = map.addPolyline(ops);
+					Polyline line = mMap.addPolyline(ops);
 					line.setWidth(5.0F);
 				}
 			}
