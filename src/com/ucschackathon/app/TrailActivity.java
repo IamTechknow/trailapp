@@ -158,7 +158,7 @@ public class TrailActivity extends ActionBarActivity {
 				int response = conn.getResponseCode();
 				Log.d(TAG, "The response is: " + response);
 				InputStream inputStream = conn.getInputStream();
-
+				//Parse the KML input stream
 				DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
 				DocumentBuilder db = dbf.newDocumentBuilder();
 				document = db.parse(inputStream);
@@ -183,80 +183,33 @@ public class TrailActivity extends ActionBarActivity {
 				int index = 0;
 				ArrayList<LatLng> coords = new ArrayList<LatLng>();
 
-				//Place Markers for Restrooms
-				for (;index < 2; index++) {
-					String path = coordinates.item(index).getFirstChild().getNodeValue();
-
-					coords.clear();
-					String[] lngLat = path.split(","); //split the coordinates by a comma to get individual coordinates
-					for (int i = 0; i < lngLat.length - 2; i = i + 2) { //lat actually comes second
-						String lat = lngLat[i + 1], lng = lngLat[i].substring(lngLat[i].indexOf('-'));
-						//We can obtain the coordinates by doing some simple String operations and parsing the strings to numbers
-						LatLng obj = new LatLng(Double.parseDouble(lat), Double.parseDouble(lng));
-						coords.add(obj);
-					}
-					for(LatLng l: coords) {
-						Marker entrance_marker = mMap.addMarker(new MarkerOptions().position(l).title("Restroom").icon(BitmapDescriptorFactory.fromResource(R.drawable.bathrooms)));
-						//add the markers using the trail access icon found in the organization's website
-					}
+				for (;index < 2; index++) { //Place Markers for Parking
+					String coord = coordinates.item(index).getFirstChild().getNodeValue();
+					placeMarkers(coord, coords, "Parking");
 				}
 
-				//Place Markers for Trail Entrances
-				for (index = 8;index < 42; index++) {
-					String path = coordinates.item(index).getFirstChild().getNodeValue();
-
-					coords.clear();
-					String[] lngLat = path.split(","); //split the coordinates by a comma to get individual coordinates
-					for (int i = 0; i < lngLat.length - 2; i = i + 2) { //lat actually comes second
-						String lat = lngLat[i + 1], lng = lngLat[i].substring(lngLat[i].indexOf('-'));
-						//We can obtain the coordinates by doing some simple String operations and parsing the strings to numbers
-						LatLng obj = new LatLng(Double.parseDouble(lat), Double.parseDouble(lng));
-						coords.add(obj);
-					}
-					for(LatLng l: coords) {
-						Marker entrance_marker = mMap.addMarker(new MarkerOptions().position(l).title("Trail Entrance").icon(BitmapDescriptorFactory.fromResource(R.drawable.sloughtrailentrances)));
-						//add the markers using the trail access icon found in the organization's website
-					}
+				for (index = 8;index < 42; index++) { //Markers for trail entrances
+					String coord = coordinates.item(index).getFirstChild().getNodeValue();
+					placeMarkers(coord, coords, "Trail Entrance");
 				}
 
-				//Place Markers for Restrooms
-				for(index = 42; index < 48; index++) {
-					String path = coordinates.item(index).getFirstChild().getNodeValue();
-
-					coords.clear();
-					String[] lngLat = path.split(","); //split the coordinates by a comma to get individual coordinates
-					for (int i = 0; i < lngLat.length - 2; i = i + 2) { //lat actually comes second
-						String lat = lngLat[i + 1], lng = lngLat[i].substring(lngLat[i].indexOf('-'));
-						//We can obtain the coordinates by doing some simple String operations and parsing the strings to numbers
-						LatLng obj = new LatLng(Double.parseDouble(lat), Double.parseDouble(lng));
-						coords.add(obj);
-					}
-					for(LatLng l: coords) {
-						Marker entrance_marker = mMap.addMarker(new MarkerOptions().position(l).title("Parking").icon(BitmapDescriptorFactory.fromResource(R.drawable.sloughtrailparking)));
-						//add the markers using the trail access icon found in the organization's website
-					}
+				for(index = 42; index < 48; index++) { //Markers for restrooms
+					String coord = coordinates.item(index).getFirstChild().getNodeValue();
+					placeMarkers(coord, coords, "Restrooms");
 				}
 
-				//Draw all the trails!
-				for(index = 48; index < 113; index++) {
+				for(index = 48; index < 113; index++) { //Draw all the trails!
 					String path = coordinates.item(index).getFirstChild().getNodeValue();
+					placeMarkers(path,coords,null); //Not displaying markers
 
-					coords.clear(); //fill new data, clear array
-					String[] lngLat = path.split(","); //split the coordinates by a comma to get individual coordinates
-					for (int i = 0; i < lngLat.length - 2; i = i + 2) { //lat actually comes second
-						String lat = lngLat[i + 1], lng = lngLat[i].substring(lngLat[i].indexOf('-'));
-						//We can obtain the coordinates by doing some simple String operations and parsing the strings to numbers
-						LatLng obj = new LatLng(Double.parseDouble(lat), Double.parseDouble(lng));
-						coords.add(obj);
-					}
 					//Now we can draw the polyline!
 					int c;
 					switch(index) { //Draw trails with right color
 						case 62: case 64: case 74: case 75: case 76: case 77: case 78:
-						case 86: case 87: case 110:
+						case 86: case 87: case 110: //Watsonville Slough Trails
 							c = Color.GREEN;
 							break;
-						case 112:
+						case 112: //Watsonville Slough
 							c = Color.BLUE;
 							break;
 						default:
@@ -268,6 +221,27 @@ public class TrailActivity extends ActionBarActivity {
 					line.setWidth(5.0F);
 				}
 			}
+		}
+		//Parse the coordinates and fill the arraylist. If necessary, insert markers here.
+		private void placeMarkers (String path, ArrayList<LatLng> coords, String iconName) {
+			coords.clear();
+			String[] lngLat = path.split(","); //split the coordinates by a comma to get individual coordinates
+			for (int i = 0; i < lngLat.length - 2; i = i + 2) { //lat actually comes second
+				String lat = lngLat[i + 1], lng = lngLat[i].substring(lngLat[i].indexOf('-'));
+				//We can obtain the coordinates by doing some simple String operations and parsing the strings to numbers
+				LatLng obj = new LatLng(Double.parseDouble(lat), Double.parseDouble(lng));
+				coords.add(obj);
+			}
+
+			for(LatLng l: coords)  //add the markers using the trail access icon found in the organization's website
+				if(iconName != null)
+					if(iconName.compareTo("Parking") == 0) {
+						Marker m = mMap.addMarker(new MarkerOptions().position(l).title("Parking").icon(BitmapDescriptorFactory.fromResource(R.drawable.sloughtrailparking)));
+					} else if(iconName.compareTo("Trail Entrance") == 0) {
+						Marker m = mMap.addMarker(new MarkerOptions().position(l).title("Parking").icon(BitmapDescriptorFactory.fromResource(R.drawable.sloughtrailentrances)));
+					} else if(iconName.compareTo("Restrooms") == 0) {
+						Marker m = mMap.addMarker(new MarkerOptions().position(l).title("Parking").icon(BitmapDescriptorFactory.fromResource(R.drawable.bathrooms)));
+					}
 		}
 	}
 }
