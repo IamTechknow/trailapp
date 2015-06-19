@@ -1,6 +1,6 @@
 package com.ucschackathon.app;
 
-import android.support.v7.app.ActionBarActivity;
+import android.support.v7.app.AppCompatActivity;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.Color;
@@ -38,7 +38,7 @@ import javax.xml.parsers.ParserConfigurationException;
  * (see hackucsc.com)
  */
 
-public class TrailActivity extends ActionBarActivity {
+public class TrailActivity extends AppCompatActivity {
 	private static final LatLng[] WATSONVILLE = {
 			new LatLng(36.911, -121.803),
 			new LatLng(36.905060, -121.785410),

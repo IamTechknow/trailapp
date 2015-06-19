@@ -15,19 +15,18 @@
     </content>
     <orderEntry type="jdk" jdkName="Android API 22 Platform" jdkType="Android SDK" />
     <orderEntry type="sourceFolder" forTests="false" />
+    <orderEntry type="module" module-name="google-play-services_lib" />
+    <orderEntry type="library" name="android-support-v4" level="project" />
+    <orderEntry type="module" module-name="appcompat" />
+    <orderEntry type="library" name="android-support-v7-appcompat" level="project" />
     <orderEntry type="module-library">
       <library>
         <CLASSES>
-          <root url="jar://$MODULE_DIR$/../google-play-services_lib/libs/google-play-services.jar!/" />
+          <root url="jar://$USER_HOME$/AppData/Local/Android/android-sdk/extras/google/google_play_services/libproject/google-play-services_lib/libs/google-play-services.jar!/" />
         </CLASSES>
         <JAVADOC />
         <SOURCES />
       </library>
     </orderEntry>
-    <orderEntry type="module" module-name="google-play-services_lib" />
-    <orderEntry type="library" name="android-support-v4" level="project" />
-    <orderEntry type="library" name="google-play-services" level="project" />
-    <orderEntry type="module" module-name="appcompat" />
-    <orderEntry type="library" name="android-support-v7-appcompat" level="project" />
   </component>
 </module>
