@@ -2,8 +2,8 @@
 <resources>
 
     <!--
-          Base application theme, dependent on API level. This theme is replaced
-          by AppBaseTheme from res/values-vXX/styles.xml on newer devices.
+          TODO: For this build to work, there must be appcompat and play services as modules. trailapp module depends on
+          both of them. Check module SDK for all of them. Also, add libraries for the v4 and v7 support library
     -->
 
     <!-- Application theme. -->
