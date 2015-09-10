@@ -4,13 +4,13 @@ import android.os.Bundle;
 import android.text.method.LinkMovementMethod;
 import android.text.Html;
 import android.widget.TextView;
-import android.support.v7.app.ActionBarActivity;
+import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 
 /**
  * About screen menu for the Trail App with Material Design
  */
-public class AboutActivity extends ActionBarActivity {
+public class AboutActivity extends AppCompatActivity {
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
