@@ -13,10 +13,11 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import android.widget.Toast;
 import android.support.v7.widget.Toolbar;
 import android.support.design.widget.CoordinatorLayout;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.HttpURLConnection;
@@ -28,10 +29,18 @@ import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.MapFragment;
 import com.google.android.gms.maps.OnMapReadyCallback;
-import com.google.android.gms.maps.model.*;
+import com.google.android.gms.maps.model.BitmapDescriptorFactory;
+import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.Marker;
+import com.google.android.gms.maps.model.MarkerOptions;
+import com.google.android.gms.maps.model.Polyline;
+import com.google.android.gms.maps.model.PolylineOptions;
+import com.google.maps.android.kml.KmlLayer;
+
 import org.w3c.dom.Document;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
+import org.xmlpull.v1.XmlPullParserException;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -57,6 +66,8 @@ public class TrailActivity extends AppCompatActivity {
 	private GoogleMap mMap;
 	private boolean mInSatellite;
 	private Toolbar mToolbar;
+	private KmlLayer mKmlLayer; //to show or hide KML layer
+	private Marker[] markers;
 
 	//Change the default behaviour of centering the map to the user's location to center over Watsonville
 	private GoogleMap.OnMyLocationButtonClickListener mMyLocationListener = new GoogleMap.OnMyLocationButtonClickListener() {
@@ -110,14 +121,24 @@ public class TrailActivity extends AppCompatActivity {
 			case R.id.showMarkers:
 				showMarkers();
 				return true;
-			case R.id.showTrails:
+			case R.id.showTrails: //Show the trails by parsing them
 				try {
 					showTrails();
-				} catch (ExecutionException e) {
-					e.printStackTrace();
-				} catch (InterruptedException e) {
+				} catch (InterruptedException | ExecutionException e) {
 					e.printStackTrace();
 				}
+				return true;
+			case R.id.showTrailsAlt: //Show the trails by parsing the KML layer with Google Maps utils
+				try { //We could recycle mKmlLayer but not all data (the text overlays) is preserved
+					showTrailsAlt();
+				} catch (ExecutionException | InterruptedException e) {
+					e.printStackTrace();
+				}
+				return true;
+			case R.id.hideData: //Remove all drawn data from the map
+				mKmlLayer.removeLayerFromMap();
+				mMap.clear();
+				markers = null;
 				return true;
 			case R.id.about: //Show about screen
 				Intent intent = new Intent(this, AboutActivity.class);
@@ -129,14 +150,14 @@ public class TrailActivity extends AppCompatActivity {
 	}
 
 	public void showMarkers() {
-		Marker[] markers = {
-				mMap.addMarker(new MarkerOptions().position(WATSONVILLE[0]).title("Nest of Osprey")),
-				mMap.addMarker(new MarkerOptions().position(WATSONVILLE[1]).title("DFG Outlook")),
-				mMap.addMarker(new MarkerOptions().position(WATSONVILLE[2]).title("Struve Slough")),
-				mMap.addMarker(new MarkerOptions().position(WATSONVILLE[3]).title("Tarplant Hill")),
-				mMap.addMarker(new MarkerOptions().position(WATSONVILLE[4]).title("Wetland restoration")),
-				mMap.addMarker(new MarkerOptions().position(WATSONVILLE[5]).title("Nature Center")),
-				mMap.addMarker(new MarkerOptions().position(WATSONVILLE[6]).title("Harkins Slough")),
+		markers = new Marker[]{
+			mMap.addMarker(new MarkerOptions().position(WATSONVILLE[0]).title("Nest of Osprey")),
+			mMap.addMarker(new MarkerOptions().position(WATSONVILLE[1]).title("DFG Outlook")),
+			mMap.addMarker(new MarkerOptions().position(WATSONVILLE[2]).title("Struve Slough")),
+			mMap.addMarker(new MarkerOptions().position(WATSONVILLE[3]).title("Tarplant Hill")),
+			mMap.addMarker(new MarkerOptions().position(WATSONVILLE[4]).title("Wetland restoration")),
+			mMap.addMarker(new MarkerOptions().position(WATSONVILLE[5]).title("Nature Center")),
+			mMap.addMarker(new MarkerOptions().position(WATSONVILLE[6]).title("Harkins Slough")),
 		};
 	}
 
@@ -148,7 +169,7 @@ public class TrailActivity extends AppCompatActivity {
 			Snackbar.make(mCoordinatorLayout, R.string.satelliteOn, Snackbar.LENGTH_LONG).setAction(R.string.snackBarToggle, new View.OnClickListener() {
 				@Override
 				public void onClick(View view) {
-					toggleMapLayer();
+				toggleMapLayer();
 				}
 			}).show();
 		}
@@ -158,78 +179,99 @@ public class TrailActivity extends AppCompatActivity {
 			Snackbar.make(mCoordinatorLayout, R.string.satelliteOff, Snackbar.LENGTH_LONG).setAction(R.string.snackBarToggle, new View.OnClickListener() {
 				@Override
 				public void onClick(View view) {
-					toggleMapLayer();
+				toggleMapLayer();
 				}
 			}).show();
 		}
 	}
 
-	/**
-	 * All the work to parse the KML data is done in the below method. The Document object is a
-	 * DOM presentation of the KML which allows us to use Javascript techniques to navigate through the KML file and
-	 * get what we want.
-	 */
-
 	public void showTrails() throws ExecutionException, InterruptedException {
 		//Check Internet Connection
-		ConnectivityManager connMgr = (ConnectivityManager)
-				getSystemService(Context.CONNECTIVITY_SERVICE);
+		ConnectivityManager connMgr = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
 		NetworkInfo networkInfo = connMgr.getActiveNetworkInfo();
+
 		if (networkInfo != null && networkInfo.isConnected())
 			new TrailData().execute().get(); //Need to use ASyncTask class cannot do this on main UI thread TODO: replace with Handler
-		else //Let the user know there's no internet access TODO: replace with snackbar
-			Toast.makeText(this, R.string.noconnectionID,Toast.LENGTH_SHORT).show();
+		else
+			Snackbar.make(mCoordinatorLayout, R.string.noconnectionID, Snackbar.LENGTH_SHORT).show();
+	}
+
+	public void showTrailsAlt() throws ExecutionException, InterruptedException {
+		//Check Internet Connection
+		ConnectivityManager connMgr = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
+		NetworkInfo networkInfo = connMgr.getActiveNetworkInfo();
+
+		if (networkInfo != null && networkInfo.isConnected())
+			new TrailLayer().execute().get();
+		else
+			Snackbar.make(mCoordinatorLayout, R.string.noconnectionID, Snackbar.LENGTH_SHORT).show();
+	}
+
+	/*
+		Private method to download the KML file and return it as an IO stream
+	 */
+
+	private InputStream getKMLasStream() {
+		final String TAG = "TrailData", theKML = "http://www.watsonvillewetlandswatch.org/sloughs/EntireMapWeb.kml";
+		InputStream is = null;
+		try {
+			HttpURLConnection conn = (HttpURLConnection) new URL(theKML).openConnection();
+			conn.setReadTimeout(500); // milliseconds
+			conn.setConnectTimeout(1000); // milliseconds. If you get null object exceptions, ensure socket has not time out
+			conn.setRequestMethod("GET");
+			conn.setDoInput(true);
+			// Starts the query to get the KML
+			conn.connect();
+			int response = conn.getResponseCode();
+			Log.d(TAG, "The response is: " + response);
+			is = conn.getInputStream();
+		}
+		catch (IOException e) {
+			e.printStackTrace();
+		}
+
+		return is;
 	}
 
 	private class TrailData extends AsyncTask<Void, Void, Document> {
 		private Document document;
-		private static final String TAG = "TrailData";
-		private static final String theKML = "http://www.watsonvillewetlandswatch.org/sloughs/EntireMapWeb.kml";
 
 		@Override
 		protected Document doInBackground(Void... params) {
 			try {
-				HttpURLConnection conn = (HttpURLConnection) new URL(theKML).openConnection();
-				conn.setReadTimeout(500); // milliseconds
-				conn.setConnectTimeout(1000); // milliseconds. If you get null object exceptions, ensure socket has not time out
-				conn.setRequestMethod("GET");
-				conn.setDoInput(true);
-				// Starts the query to get the KML
-				conn.connect();
-				int response = conn.getResponseCode();
-				Log.d(TAG, "The response is: " + response);
-				InputStream inputStream = conn.getInputStream();
+				InputStream inputStream = getKMLasStream();
 				//Parse the KML input stream
 				DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
 				DocumentBuilder db = dbf.newDocumentBuilder();
 				document = db.parse(inputStream);
 				return document;
 			}
-			catch (IOException e) {
-				e.printStackTrace();
-			}
-			catch (ParserConfigurationException e) {
-				e.printStackTrace();
-			}
-			catch (SAXException e) {
+			catch (IOException | ParserConfigurationException | SAXException e) {
 				e.printStackTrace();
 			}
 			return null;
 		}
 
+		/**
+		 * All the work to parse the KML data is done in the below method. The Document object is a
+		 * DOM presentation of the KML which allows us to use Javascript techniques to navigate through the KML file and
+		 * get what we want.
+		 */
+
+		@Override
 		protected void onPostExecute(Document result) {  // result is data returned by doInBackground
 			if (result.getElementsByTagName("coordinates").getLength() >= 0) {
 				//Get the path data to parse
 				NodeList coordinates = result.getElementsByTagName("coordinates");
 				int index = 0;
-				ArrayList<LatLng> coords = new ArrayList<LatLng>();
+				ArrayList<LatLng> coords = new ArrayList<>();
 
-				for (;index < 2; index++) { //Place Markers for Parking
+				for ( ; index < 2; index++) { //Place Markers for Parking
 					String coord = coordinates.item(index).getFirstChild().getNodeValue();
 					placeMarkers(coord, coords, "Parking");
 				}
 
-				for (index = 8;index < 42; index++) { //Markers for trail entrances
+				for (index = 8; index < 42; index++) { //Markers for trail entrances
 					String coord = coordinates.item(index).getFirstChild().getNodeValue();
 					placeMarkers(coord, coords, "Trail Entrance");
 				}
@@ -283,6 +325,43 @@ public class TrailActivity extends AppCompatActivity {
 					} else if(iconName.compareTo("Restrooms") == 0) {
 						mMap.addMarker(new MarkerOptions().position(l).title("Parking").icon(BitmapDescriptorFactory.fromResource(R.drawable.bathrooms)));
 					}
+		}
+	}
+
+	/**
+		Another AsyncTask object to provide an alternative to viewing the KML geodata by using Google Maps utils
+	 */
+
+	private class TrailLayer extends AsyncTask<Void, Void, byte[]> {
+
+		@Override
+		protected byte[] doInBackground(Void... params) {
+			try {
+				InputStream inputStream = getKMLasStream();
+				ByteArrayOutputStream buffer = new ByteArrayOutputStream();
+				int nRead;
+				byte[] data = new byte[16384];
+				//Can't use the inputstream in the main thread, so convert it to a byte array
+				while ((nRead = inputStream.read(data, 0, data.length)) != -1)
+					buffer.write(data, 0, nRead);
+
+				buffer.flush();
+				return buffer.toByteArray();
+			}
+			catch (IOException e) {
+				e.printStackTrace();
+			}
+			return null;
+		}
+
+		@Override
+		protected void onPostExecute(byte[] byteArr) {  // result is data returned by doInBackground
+			try {
+				mKmlLayer = new KmlLayer(mMap, new ByteArrayInputStream(byteArr), getApplicationContext());
+				mKmlLayer.addLayerToMap();
+			} catch (XmlPullParserException | IOException e) {
+				e.printStackTrace();
+			}
 		}
 	}
 }

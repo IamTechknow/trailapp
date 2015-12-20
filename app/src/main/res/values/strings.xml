@@ -6,6 +6,8 @@
     <string name="about_menu_option">About this App</string>
     <string name="showMarkers">Show Points of Interest</string>
     <string name="showTrails">Display the trails</string>
+    <string name="showTrailsAlt">Display the KML trail layer</string>
+    <string name="hideData">Hide data</string>
     <string name="satelliteOn">Satellite view on</string>
     <string name="satelliteOff">Satellite view off</string>
     <string name="snackBarToggle">Toggle</string>
