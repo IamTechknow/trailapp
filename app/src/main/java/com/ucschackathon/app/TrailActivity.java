@@ -1,7 +1,5 @@
 package com.ucschackathon.app;
 
-import android.support.design.widget.Snackbar;
-import android.support.v7.app.AppCompatActivity;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.Color;
@@ -9,12 +7,18 @@ import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.support.design.widget.NavigationView;
+import android.support.v4.view.GravityCompat;
+import android.support.v4.widget.DrawerLayout;
+import android.support.v7.app.ActionBar;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import android.support.v7.widget.Toolbar;
+import android.support.design.widget.Snackbar;
 import android.support.design.widget.CoordinatorLayout;
+import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.Toolbar;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -62,6 +66,7 @@ public class TrailActivity extends AppCompatActivity {
 			new LatLng(36.9016682,-121.7845458),
 	};
 
+	private DrawerLayout mDrawerLayout;
 	private CoordinatorLayout mCoordinatorLayout;
 	private GoogleMap mMap;
 	private boolean mInSatellite;
@@ -95,7 +100,7 @@ public class TrailActivity extends AppCompatActivity {
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.main);
-		//Set up action bar and layout
+		//Set up toolbar bar and layout
 		mCoordinatorLayout = (CoordinatorLayout) findViewById(R.id.thelayout);
 		mToolbar = (Toolbar) findViewById(R.id.tool_bar);
 		setSupportActionBar(mToolbar);
@@ -103,6 +108,33 @@ public class TrailActivity extends AppCompatActivity {
 		//set up the map
 		getFragmentManager().findFragmentById(R.id.map).setRetainInstance(true); //allow map to survive screen rotation
 		((MapFragment) getFragmentManager().findFragmentById(R.id.map)).getMapAsync(mMapReadyCallback); //get the map
+
+		//Setup drawer
+		// Create Navigation drawer and inflate layout
+		NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
+		mDrawerLayout = (DrawerLayout) findViewById(R.id.drawer);
+
+		// Adding menu icon to Toolbar
+		ActionBar supportActionBar = getSupportActionBar();
+		if (supportActionBar != null) {
+			supportActionBar.setHomeAsUpIndicator(R.drawable.ic_menu_white_24dp);
+			supportActionBar.setDisplayHomeAsUpEnabled(true);
+		}
+
+		// Set behavior of Navigation drawer
+		navigationView.setNavigationItemSelectedListener( new NavigationView.OnNavigationItemSelectedListener() {
+			// This method will trigger on item Click of navigation menu
+			@Override
+			public boolean onNavigationItemSelected(MenuItem menuItem) {
+				// Set item in checked state
+				menuItem.setChecked(true);
+				// TODO: handle navigation
+				// Closing drawer on item click
+				mDrawerLayout.closeDrawers();
+				return true;
+			}
+		});
+
 	}
 
 	@Override
@@ -115,6 +147,9 @@ public class TrailActivity extends AppCompatActivity {
 	public boolean onOptionsItemSelected(MenuItem item) {
 		// Handle item selection
 		switch (item.getItemId()) {
+			case android.R.id.home: //Drawer button on toolbar
+				mDrawerLayout.openDrawer(GravityCompat.START);
+				return true;
 			case R.id.satellite_enabled:
 				toggleMapLayer();
 				return true;
@@ -136,7 +171,8 @@ public class TrailActivity extends AppCompatActivity {
 				}
 				return true;
 			case R.id.hideData: //Remove all drawn data from the map
-				mKmlLayer.removeLayerFromMap();
+				if(mKmlLayer != null)
+					mKmlLayer.removeLayerFromMap();
 				mMap.clear();
 				markers = null;
 				return true;
@@ -222,8 +258,7 @@ public class TrailActivity extends AppCompatActivity {
 			conn.setDoInput(true);
 			// Starts the query to get the KML
 			conn.connect();
-			int response = conn.getResponseCode();
-			Log.d(TAG, "The response is: " + response);
+			Log.d(TAG, "The response is: " + conn.getResponseCode());
 			is = conn.getInputStream();
 		}
 		catch (IOException e) {

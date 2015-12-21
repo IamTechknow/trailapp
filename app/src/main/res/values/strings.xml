@@ -11,6 +11,7 @@
     <string name="satelliteOn">Satellite view on</string>
     <string name="satelliteOff">Satellite view off</string>
     <string name="snackBarToggle">Toggle</string>
+    <string name="navShowTrails">View trail data</string>
     <string name="aboutText"> <!-- Use CDATA to prevent android from parsing html tags -->
         <![CDATA[
         <h1>About</h1><p>This mobile application is created during the HACK UCSC 2015 competition
