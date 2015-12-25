@@ -23,7 +23,7 @@ import java.util.ArrayList;
 public class TrailDatabaseHelper extends SQLiteOpenHelper {
     public static final int MARKER_PARKING = 0, MARKER_ENTRANCE = 1, MARKER_RESTROOM = 2;
 
-    private static final String DB_NAME = "trails.sqlite", TAG = "SQLiteOpenHelper";
+    private static final String DB_NAME = "trails.sqlite", TAG = "TrailDatabaseHelper";
     private static final int VERSION = 1;
 
     private static final String TABLE_TRAIL = "trail", TABLE_LOC = "location", TABLE_MARKER = "marker",
@@ -73,8 +73,6 @@ public class TrailDatabaseHelper extends SQLiteOpenHelper {
         //Set all locations into its table with the ID
         for(LatLng l: t.getTrailCoords())
             insertLoc(id, l);
-
-        Log.d(TAG, "Successfully added trail with starting coordinate " + Double.toString(temp.latitude) + ", " + Double.toString(temp.longitude));
     }
 
     /**
@@ -89,7 +87,6 @@ public class TrailDatabaseHelper extends SQLiteOpenHelper {
         cv.put(COL_LOC_LONG, loc.longitude);
         cv.put(COL_ID, trailId);
 
-        Log.d(TAG, "Successfully added location of trail ID " + Long.toString(trailId));
         return getWritableDatabase().insert(TABLE_LOC, null, cv);
     }
 
@@ -106,7 +103,6 @@ public class TrailDatabaseHelper extends SQLiteOpenHelper {
         cv.put(COL_LOC_LONG, loc.longitude);
         cv.put(COL_MARKER_TYPE, type);
 
-        Log.d(TAG, "Successfully added marker of type " + Integer.toString(type));
         return getWritableDatabase().insert(TABLE_MARKER, null, cv);
     }
 

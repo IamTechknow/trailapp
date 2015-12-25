@@ -364,10 +364,10 @@ public class TrailActivity extends AppCompatActivity {
 					PolylineOptions ops = new PolylineOptions().addAll(coords).color(c);
 					Polyline line = mMap.addPolyline(ops);
 					line.setWidth(5.0F);
-
-					//Save onto Preferences that database is init
-					mPrefs.edit().putBoolean(PREFS_HAVE_TRAIL_DB, true).apply();
 				}
+
+				//Done !Save onto Preferences that database is init
+				mPrefs.edit().putBoolean(PREFS_HAVE_TRAIL_DB, true).apply();
 			}
 		}
 		//Parse the coordinates and fill the arraylist. If necessary, insert markers here.
