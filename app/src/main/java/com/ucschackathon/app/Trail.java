@@ -11,19 +11,43 @@ import com.google.android.gms.maps.model.LatLng;
 
 public class Trail {
     private ArrayList<LatLng> trailCoords;
+    private int color;
+    private long mId;
 
     public Trail() {
         trailCoords = new ArrayList<>();
     }
 
+    public Trail(ArrayList<LatLng> a, int c) {
+        trailCoords = a;
+        color = c;
+    }
+
     public void addCoord(float x, float y) {
-        LatLng loc = new LatLng(x, y);
+        trailCoords.add(new LatLng(x, y));
+    }
 
-
-        trailCoords.add(loc);
+    public void setTrailCoords(ArrayList<LatLng> list) {
+        trailCoords = list;
     }
 
     public ArrayList<LatLng> getTrailCoords() {
         return trailCoords;
+    }
+
+    public int getColor() {
+        return color;
+    }
+
+    public void setColor(int Color) {
+        color = Color;
+    }
+
+    public long getmId() {
+        return mId;
+    }
+
+    public void setmId(long id) {
+        mId = id;
     }
 }

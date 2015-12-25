@@ -2,6 +2,7 @@ package com.ucschackathon.app;
 
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
@@ -56,6 +57,8 @@ import javax.xml.parsers.ParserConfigurationException;
  */
 
 public class TrailActivity extends AppCompatActivity {
+	private static final String PREFS_FILE = "settings", PREFS_HAVE_TRAIL_DB = "TrailActivity.mHaveTrailDB";
+
 	private static final LatLng[] WATSONVILLE = {
 			new LatLng(36.911, -121.803),
 			new LatLng(36.905060, -121.785410),
@@ -69,10 +72,12 @@ public class TrailActivity extends AppCompatActivity {
 	private DrawerLayout mDrawerLayout;
 	private CoordinatorLayout mCoordinatorLayout;
 	private GoogleMap mMap;
-	private boolean mInSatellite;
+	private boolean mInSatellite, mHaveTrailDB;
 	private Toolbar mToolbar;
 	private KmlLayer mKmlLayer; //to show or hide KML layer
 	private Marker[] markers;
+	private TrailDatabaseHelper mHelper;
+	private SharedPreferences mPrefs;
 
 	//Change the default behaviour of centering the map to the user's location to center over Watsonville
 	private GoogleMap.OnMyLocationButtonClickListener mMyLocationListener = new GoogleMap.OnMyLocationButtonClickListener() {
@@ -135,6 +140,11 @@ public class TrailActivity extends AppCompatActivity {
 			}
 		});
 
+		//Setup DB, Determine if we have init the trail database by checking key-value pair flag
+		Context c = getApplicationContext();
+		mHelper = new TrailDatabaseHelper(c);
+		mPrefs = c.getSharedPreferences(PREFS_FILE, Context.MODE_PRIVATE);
+		mHaveTrailDB = mPrefs.getBoolean(PREFS_HAVE_TRAIL_DB, false); //return false if it doesn't exist
 	}
 
 	@Override
@@ -222,6 +232,11 @@ public class TrailActivity extends AppCompatActivity {
 	}
 
 	public void showTrails() throws ExecutionException, InterruptedException {
+
+		if(mHaveTrailDB) {
+			setupTrailsFromDB();
+		}
+
 		//Check Internet Connection
 		ConnectivityManager connMgr = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
 		NetworkInfo networkInfo = connMgr.getActiveNetworkInfo();
@@ -334,9 +349,16 @@ public class TrailActivity extends AppCompatActivity {
 							c = Color.RED;
 							break;
 					}
+					//Create a Trail object to serialize to the database
+					Trail t = new Trail(coords, c);
+					mHelper.insertTrail(t);
+
 					PolylineOptions ops = new PolylineOptions().addAll(coords).color(c);
 					Polyline line = mMap.addPolyline(ops);
 					line.setWidth(5.0F);
+
+					//Save onto Preferences that database is init
+					mPrefs.edit().putBoolean(PREFS_HAVE_TRAIL_DB, true).apply();
 				}
 			}
 		}
@@ -351,14 +373,17 @@ public class TrailActivity extends AppCompatActivity {
 				coords.add(obj);
 			}
 
-			for(LatLng l: coords)  //add the markers using the trail access icon found in the organization's website
+			for(LatLng l: coords)  //add the markers using the trail access icon found in the organization's website. also add marker info to the sqlite database
 				if(iconName != null)
 					if(iconName.compareTo("Parking") == 0) {
+						mHelper.insertMarker(TrailDatabaseHelper.MARKER_PARKING, l);
 						mMap.addMarker(new MarkerOptions().position(l).title("Parking").icon(BitmapDescriptorFactory.fromResource(R.drawable.sloughtrailparking)));
 					} else if(iconName.compareTo("Trail Entrance") == 0) {
-						mMap.addMarker(new MarkerOptions().position(l).title("Parking").icon(BitmapDescriptorFactory.fromResource(R.drawable.sloughtrailentrances)));
+						mHelper.insertMarker(TrailDatabaseHelper.MARKER_ENTRANCE, l);
+						mMap.addMarker(new MarkerOptions().position(l).title("Trail Entrance").icon(BitmapDescriptorFactory.fromResource(R.drawable.sloughtrailentrances)));
 					} else if(iconName.compareTo("Restrooms") == 0) {
-						mMap.addMarker(new MarkerOptions().position(l).title("Parking").icon(BitmapDescriptorFactory.fromResource(R.drawable.bathrooms)));
+						mHelper.insertMarker(TrailDatabaseHelper.MARKER_RESTROOM, l);
+						mMap.addMarker(new MarkerOptions().position(l).title("Restroom").icon(BitmapDescriptorFactory.fromResource(R.drawable.bathrooms)));
 					}
 		}
 	}
@@ -398,5 +423,10 @@ public class TrailActivity extends AppCompatActivity {
 				e.printStackTrace();
 			}
 		}
+	}
+
+	//TODO: For each trail, get its collection of LatLngs then make the polyline. Get its type to set the color
+	private void setupTrailsFromDB() {
+
 	}
 }

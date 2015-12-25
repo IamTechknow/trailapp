@@ -19,7 +19,7 @@ public class Marker {
         type = NONE;
     }
 
-    public Marker(int t, float x, float y) {
+    public Marker(int t, double x, double y) {
         type = t;
         loc = new LatLng(x, y);
     }
