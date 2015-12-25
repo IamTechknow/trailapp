@@ -12,12 +12,12 @@ import com.google.android.gms.maps.model.LatLng;
 import java.util.ArrayList;
 
 /**
- * An interface to deserialize the trail data from the KML file to store it locally.
+ * <p>An interface to deserialize the trail data from the KML file to store it locally.
  * Creates a SQL table for trails, markers, and trail coordinates, and allows trail and marker objects to be created from querying
- * the database. Locations are bound to Trails, but Markers are independent from trails.
+ * the database. Locations are bound to Trails, but Markers are independent from trails.</p>
  *
- * The database structure for trails and coordinates is to associate every trail coordinate with a trail ID, so when a Tral object is rebuilt,
- * its list of coordinates can be queried on the location table and its trail ID compared with that of the current trail
+ * <p>The database structure for trails and coordinates is to associate every trail coordinate with a trail ID, so when a Trail object is rebuilt,
+ * its list of coordinates can be queried on the location table and its trail ID compared with that of the current trail</p>
  */
 
 public class TrailDatabaseHelper extends SQLiteOpenHelper {
@@ -28,7 +28,7 @@ public class TrailDatabaseHelper extends SQLiteOpenHelper {
 
     private static final String TABLE_TRAIL = "trail", TABLE_LOC = "location", TABLE_MARKER = "marker",
         COL_TRAIL_START_LAT = "start_lat", COL_TRAIL_START_LONG = "start_long", COL_TRAIL_COLOR = "color",
-        COL_LOC_LAT = "lat", COL_LOC_LONG = "long", COL_ID = "trail_id", COL_MARKER_TYPE = "type";
+        COL_LOC_LAT = "lat", COL_LOC_LONG = "long", COL_TRAIL_ID = "_id", COL_ID = "trail_id", COL_MARKER_TYPE = "type";
 
     public TrailDatabaseHelper(Context context) {
         super(context, DB_NAME, null, VERSION);
@@ -118,25 +118,25 @@ public class TrailDatabaseHelper extends SQLiteOpenHelper {
 
     public ArrayList<Trail> queryTrails() {
         // equivalent to "select * from trail order by start_lat asc"
-        Cursor trail_c = getReadableDatabase().query(TABLE_TRAIL, null, null, null, null, null, "_id" + "asc"); //ascending from ID
-        Cursor loc_c = getReadableDatabase().query(TABLE_LOC, null, null, null, null, null, COL_ID + "asc"); //don't sort but sort by ID if needed
+        Cursor trail_c = getReadableDatabase().query(TABLE_TRAIL, null, null, null, null, null, "_id" + " asc"); //ascending from ID
+        Cursor loc_c = getReadableDatabase().query(TABLE_LOC, null, null, null, null, null, null); //don't sort but sort by ID if needed
         ArrayList<Trail> trails = new ArrayList<>();
 
         //iterate through the locations table to populate the trail with the coordinates
         //First check for matching IDs with the trail
         trail_c.moveToFirst(); loc_c.moveToFirst();
 
-        while(!trail_c.isAfterLast()) {
+        while(!trail_c.isAfterLast()) { //For each row in trail table
             Trail trail = new Trail();
-            trail.setmId(trail_c.getLong(trail_c.getColumnIndex(COL_ID)));
+            trail.setmId(trail_c.getLong(trail_c.getColumnIndex(COL_TRAIL_ID)));
             trail.setColor(trail_c.getInt(trail_c.getColumnIndex(COL_TRAIL_COLOR)));
 
-            while (!loc_c.isAfterLast()) {
-                if (loc_c.getLong(loc_c.getColumnIndex(COL_ID)) == trail.getmId())
-                    trail.addCoord(loc_c.getFloat(loc_c.getColumnIndex(COL_LOC_LAT)), loc_c.getFloat(loc_c.getColumnIndex(COL_LOC_LONG)));
-                trails.add(trail);
+            while (!loc_c.isAfterLast() && loc_c.getLong(loc_c.getColumnIndex(COL_ID)) == trail.getmId()) { //Check if inside the table and matching IDs
+                trail.addCoord(loc_c.getDouble(loc_c.getColumnIndex(COL_LOC_LAT)), loc_c.getDouble(loc_c.getColumnIndex(COL_LOC_LONG)));
                 loc_c.moveToNext();
-            }
+            } //when out of the loop, the cursor should be at the first coordinate of the next trail
+            trails.add(trail);
+
             trail_c.moveToNext();
         }
 
@@ -152,7 +152,7 @@ public class TrailDatabaseHelper extends SQLiteOpenHelper {
 
     public ArrayList<Marker> queryMarkers() {
         ArrayList<Marker> markers = new ArrayList<>();
-        Cursor marker_c = getReadableDatabase().query(TABLE_MARKER, null, null, null, null, null, COL_MARKER_TYPE + "asc");
+        Cursor marker_c = getReadableDatabase().query(TABLE_MARKER, null, null, null, null, null, COL_MARKER_TYPE + " asc");
         marker_c.moveToFirst();
 
         while(!marker_c.isAfterLast()) {

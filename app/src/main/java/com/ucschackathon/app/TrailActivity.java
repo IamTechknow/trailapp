@@ -131,11 +131,19 @@ public class TrailActivity extends AppCompatActivity {
 			// This method will trigger on item Click of navigation menu
 			@Override
 			public boolean onNavigationItemSelected(MenuItem menuItem) {
-				// Set item in checked state
-				menuItem.setChecked(true);
-				// TODO: handle navigation
-				// Closing drawer on item click
-				mDrawerLayout.closeDrawers();
+				switch(menuItem.getItemId()) {
+					case R.id.showTrailsNav:
+						menuItem.setChecked(true);
+						mDrawerLayout.closeDrawers();
+						try {
+							showTrails();
+						} catch (InterruptedException | ExecutionException e) {
+							e.printStackTrace();
+						}
+						break;
+					default:
+						break;
+				}
 				return true;
 			}
 		});
@@ -212,7 +220,7 @@ public class TrailActivity extends AppCompatActivity {
 		if(mInSatellite) {
 			mMap.setMapType(GoogleMap.MAP_TYPE_NORMAL);
 			mInSatellite = false;
-			Snackbar.make(mCoordinatorLayout, R.string.satelliteOn, Snackbar.LENGTH_LONG).setAction(R.string.snackBarToggle, new View.OnClickListener() {
+			Snackbar.make(mCoordinatorLayout, R.string.satelliteOff, Snackbar.LENGTH_LONG).setAction(R.string.snackBarToggle, new View.OnClickListener() {
 				@Override
 				public void onClick(View view) {
 				toggleMapLayer();
@@ -222,7 +230,7 @@ public class TrailActivity extends AppCompatActivity {
 		else {
 			mMap.setMapType(GoogleMap.MAP_TYPE_SATELLITE);
 			mInSatellite = true;
-			Snackbar.make(mCoordinatorLayout, R.string.satelliteOff, Snackbar.LENGTH_LONG).setAction(R.string.snackBarToggle, new View.OnClickListener() {
+			Snackbar.make(mCoordinatorLayout, R.string.satelliteOn, Snackbar.LENGTH_LONG).setAction(R.string.snackBarToggle, new View.OnClickListener() {
 				@Override
 				public void onClick(View view) {
 				toggleMapLayer();
@@ -235,16 +243,16 @@ public class TrailActivity extends AppCompatActivity {
 
 		if(mHaveTrailDB) {
 			setupTrailsFromDB();
+		} else {
+			//Check Internet Connection
+			ConnectivityManager connMgr = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
+			NetworkInfo networkInfo = connMgr.getActiveNetworkInfo();
+
+			if (networkInfo != null && networkInfo.isConnected())
+				new TrailData().execute().get(); //Need to use ASyncTask class cannot do this on main UI thread TODO: replace with Handler
+			else
+				Snackbar.make(mCoordinatorLayout, R.string.noconnectionID, Snackbar.LENGTH_SHORT).show();
 		}
-
-		//Check Internet Connection
-		ConnectivityManager connMgr = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
-		NetworkInfo networkInfo = connMgr.getActiveNetworkInfo();
-
-		if (networkInfo != null && networkInfo.isConnected())
-			new TrailData().execute().get(); //Need to use ASyncTask class cannot do this on main UI thread TODO: replace with Handler
-		else
-			Snackbar.make(mCoordinatorLayout, R.string.noconnectionID, Snackbar.LENGTH_SHORT).show();
 	}
 
 	public void showTrailsAlt() throws ExecutionException, InterruptedException {
@@ -425,8 +433,35 @@ public class TrailActivity extends AppCompatActivity {
 		}
 	}
 
-	//TODO: For each trail, get its collection of LatLngs then make the polyline. Get its type to set the color
+	//For each trail, get its collection of LatLngs then make the polyline. Get its type to set the color
 	private void setupTrailsFromDB() {
+		ArrayList<Trail> trails = mHelper.queryTrails();
+		ArrayList<com.ucschackathon.app.Marker> markers = mHelper.queryMarkers();
 
+		for(Trail t: trails) {
+			PolylineOptions ops = new PolylineOptions().addAll(t.getTrailCoords()).color(t.getColor());
+			Polyline line = mMap.addPolyline(ops);
+			line.setWidth(5.0F);
+		}
+
+		for(com.ucschackathon.app.Marker m: markers) {
+			String label; int resourceID;
+
+			switch(m.getType()) {
+				case TrailDatabaseHelper.MARKER_ENTRANCE:
+					label = "Trail Entrance"; resourceID = R.drawable.sloughtrailentrances;
+					break;
+				case TrailDatabaseHelper.MARKER_PARKING:
+					label = "Parking"; resourceID = R.drawable.sloughtrailparking;
+					break;
+				case TrailDatabaseHelper.MARKER_RESTROOM:
+					label = "Restroom"; resourceID = R.drawable.bathrooms;
+					break;
+				default: //For completeness
+					label = "Unknown marker"; resourceID = R.drawable.common_ic_googleplayservices;
+					break;
+			}
+			mMap.addMarker(new MarkerOptions().position(m.getLoc()).title(label).icon(BitmapDescriptorFactory.fromResource(resourceID)));
+		}
 	}
 }

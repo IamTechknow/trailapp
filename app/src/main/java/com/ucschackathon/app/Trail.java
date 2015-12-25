@@ -23,7 +23,7 @@ public class Trail {
         color = c;
     }
 
-    public void addCoord(float x, float y) {
+    public void addCoord(double x, double y) {
         trailCoords.add(new LatLng(x, y));
     }
 
