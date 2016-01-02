@@ -5,6 +5,7 @@ import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
+import android.database.sqlite.SQLiteStatement;
 import android.util.Log;
 
 import com.google.android.gms.maps.model.LatLng;
@@ -68,11 +69,19 @@ public class TrailDatabaseHelper extends SQLiteOpenHelper {
         cv.put(COL_TRAIL_START_LAT, temp.latitude);
         cv.put(COL_TRAIL_START_LONG, temp.longitude);
         cv.put(COL_TRAIL_COLOR, t.getColor());
-        long id = getWritableDatabase().insert(TABLE_TRAIL, null, cv); //returns ID of row, which we use for the trail ID
+        SQLiteDatabase DB = getWritableDatabase();
+        long id = DB.insert(TABLE_TRAIL, null, cv);//returns ID of row, which we use for the trail ID
 
-        //Set all locations into its table with the ID
+        //Set all locations into its table with the ID. The transaction speeds things up a ton
+        DB.beginTransaction();
+        SQLiteStatement stmt = DB.compileStatement("insert into location (trail_id, lat, long) values (?, ?, ?);");
         for(LatLng l: t.getTrailCoords())
-            insertLoc(id, l);
+            insertLoc(id, l, stmt);
+
+        DB.setTransactionSuccessful();
+        DB.endTransaction();
+
+        Log.d(TAG, "Successfully inserted trail with ID " + Long.toString(id));
     }
 
     /**
@@ -81,13 +90,13 @@ public class TrailDatabaseHelper extends SQLiteOpenHelper {
      * @param loc The coordinates
      */
 
-    public long insertLoc(long trailId, LatLng loc) {
-        ContentValues cv = new ContentValues();
-        cv.put(COL_LOC_LAT, loc.latitude);
-        cv.put(COL_LOC_LONG, loc.longitude);
-        cv.put(COL_ID, trailId);
+    public void insertLoc(long trailId, LatLng loc, SQLiteStatement st) {
+        st.bindLong(1, trailId);
+        st.bindDouble(2, loc.latitude);
+        st.bindDouble(3, loc.longitude);
 
-        return getWritableDatabase().insert(TABLE_LOC, null, cv);
+        st.executeInsert(); //the entry ID (unused)
+        st.clearBindings();
     }
 
     /**

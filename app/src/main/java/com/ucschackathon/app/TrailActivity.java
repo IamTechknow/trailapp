@@ -8,6 +8,7 @@ import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.os.Handler;
 import android.support.design.widget.NavigationView;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
@@ -58,6 +59,7 @@ import javax.xml.parsers.ParserConfigurationException;
 
 public class TrailActivity extends AppCompatActivity {
 	private static final String PREFS_FILE = "settings", PREFS_HAVE_TRAIL_DB = "TrailActivity.mHaveTrailDB";
+	public static final float LINE_WIDTH = 5.0F;
 
 	private static final LatLng[] WATSONVILLE = {
 			new LatLng(36.911, -121.803),
@@ -78,6 +80,7 @@ public class TrailActivity extends AppCompatActivity {
 	private Marker[] markers;
 	private TrailDatabaseHelper mHelper;
 	private SharedPreferences mPrefs;
+	private TrailParser mThread;
 
 	//Change the default behaviour of centering the map to the user's location to center over Watsonville
 	private GoogleMap.OnMyLocationButtonClickListener mMyLocationListener = new GoogleMap.OnMyLocationButtonClickListener() {
@@ -98,6 +101,13 @@ public class TrailActivity extends AppCompatActivity {
 
 			// Move the camera instantly to Watsonville with a zoom of 14.
 			mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(WATSONVILLE[3], 14));
+		}
+	};
+
+	private TrailParser.Listener mTrailListener = new TrailParser.Listener() {
+		@Override
+		public void onDataSaved(PolylineOptions theTrail) {
+			mMap.addPolyline(theTrail);
 		}
 	};
 
@@ -153,6 +163,18 @@ public class TrailActivity extends AppCompatActivity {
 		mHelper = new TrailDatabaseHelper(c);
 		mPrefs = c.getSharedPreferences(PREFS_FILE, Context.MODE_PRIVATE);
 		mHaveTrailDB = mPrefs.getBoolean(PREFS_HAVE_TRAIL_DB, false); //return false if it doesn't exist
+
+		//Setup Handler background thread
+		/*mThread = new TrailParser(new Handler(), mHelper);
+		mThread.start();
+		mThread.getLooper();
+		mThread.setListener(mTrailListener);*/
+	}
+
+	@Override
+	protected void onDestroy() {
+		super.onDestroy();
+		//mThread.clearQueue();
 	}
 
 	@Override
@@ -249,7 +271,7 @@ public class TrailActivity extends AppCompatActivity {
 			NetworkInfo networkInfo = connMgr.getActiveNetworkInfo();
 
 			if (networkInfo != null && networkInfo.isConnected())
-				new TrailData().execute().get(); //Need to use ASyncTask class cannot do this on main UI thread TODO: replace with Handler
+				new TrailData().execute().get(); //Need to use ASyncTask class cannot do this on main UI thread
 			else
 				Snackbar.make(mCoordinatorLayout, R.string.noconnectionID, Snackbar.LENGTH_SHORT).show();
 		}
@@ -317,31 +339,31 @@ public class TrailActivity extends AppCompatActivity {
 		 */
 
 		@Override
-		protected void onPostExecute(Document result) {  // result is data returned by doInBackground
-			if (result.getElementsByTagName("coordinates").getLength() >= 0) {
+		protected void onPostExecute(Document result) {  // result is data returned by doInBackground TODO: Move all calculations to doInBackground()
+			NodeList coordinates = result.getElementsByTagName("coordinates");
+			if (coordinates.getLength() > 0) {
 				//Get the path data to parse
-				NodeList coordinates = result.getElementsByTagName("coordinates");
 				int index = 0;
 				ArrayList<LatLng> coords = new ArrayList<>();
 
 				for ( ; index < 2; index++) { //Place Markers for Parking
 					String coord = coordinates.item(index).getFirstChild().getNodeValue();
-					placeMarkers(coord, coords, "Parking");
+					parseTrailOrMarker(coord, coords, "Parking");
 				}
 
 				for (index = 8; index < 42; index++) { //Markers for trail entrances
 					String coord = coordinates.item(index).getFirstChild().getNodeValue();
-					placeMarkers(coord, coords, "Trail Entrance");
+					parseTrailOrMarker(coord, coords, "Trail Entrance");
 				}
 
 				for(index = 42; index < 48; index++) { //Markers for restrooms
 					String coord = coordinates.item(index).getFirstChild().getNodeValue();
-					placeMarkers(coord, coords, "Restrooms");
+					parseTrailOrMarker(coord, coords, "Restrooms");
 				}
 
 				for(index = 48; index < 113; index++) { //Draw all the trails!
 					String path = coordinates.item(index).getFirstChild().getNodeValue();
-					placeMarkers(path,coords,null); //Not displaying markers
+					parseTrailOrMarker(path, coords, null); //Not displaying markers
 
 					//Now we can draw the polyline!
 					int c;
@@ -359,19 +381,23 @@ public class TrailActivity extends AppCompatActivity {
 					}
 					//Create a Trail object to serialize to the database
 					Trail t = new Trail(coords, c);
+					//mThread.saveTrail(t);
 					mHelper.insertTrail(t);
 
-					PolylineOptions ops = new PolylineOptions().addAll(coords).color(c);
-					Polyline line = mMap.addPolyline(ops);
-					line.setWidth(5.0F);
+					PolylineOptions ops = new PolylineOptions().addAll(coords).color(c).width(LINE_WIDTH);
+					mMap.addPolyline(ops);
 				}
 
-				//Done !Save onto Preferences that database is init
-				mPrefs.edit().putBoolean(PREFS_HAVE_TRAIL_DB, true).apply();
-			}
+				//Done! Save onto Preferences that database is set
+				mHaveTrailDB = true;
+				mPrefs.edit().putBoolean(PREFS_HAVE_TRAIL_DB, mHaveTrailDB).apply();
+			} else //NodeList had no coordinate entries. Why?
+				Snackbar.make(mCoordinatorLayout, "Data not accessed. Try again", Snackbar.LENGTH_LONG).show();
+
 		}
+
 		//Parse the coordinates and fill the arraylist. If necessary, insert markers here.
-		private void placeMarkers (String path, ArrayList<LatLng> coords, String iconName) {
+		private void parseTrailOrMarker(String path, ArrayList<LatLng> coords, String iconName) {
 			coords.clear();
 			String[] lngLat = path.split(","); //split the coordinates by a comma to get individual coordinates
 			for (int i = 0; i < lngLat.length - 2; i = i + 2) { //lat actually comes second
@@ -381,8 +407,8 @@ public class TrailActivity extends AppCompatActivity {
 				coords.add(obj);
 			}
 
-			for(LatLng l: coords)  //add the markers using the trail access icon found in the organization's website. also add marker info to the sqlite database
-				if(iconName != null)
+			if(iconName != null)
+				for(LatLng l: coords)  //add the markers using the trail access icon found in the organization's website. also add marker info to the sqlite database
 					if(iconName.compareTo("Parking") == 0) {
 						mHelper.insertMarker(TrailDatabaseHelper.MARKER_PARKING, l);
 						mMap.addMarker(new MarkerOptions().position(l).title("Parking").icon(BitmapDescriptorFactory.fromResource(R.drawable.sloughtrailparking)));
