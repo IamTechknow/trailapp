@@ -1,11 +1,11 @@
 # Wetlands Watcher
 
-An Android application with a Google Maps interface to display trail information and data.
+An Android application with a Google Maps interface to display trail information and data. Demonstrates the use of Material Design, XML parsing, database storage, and background threading to handle KML data from the Watsonville Wetlands Watch.
 
 # Build notes
-This project has dependencies with the Google Play Services and AppCompat library, and is configured in the old Ant Build model instead of Gradle. To build properly in IDEA, find the two library directories and add them as modules, then on Dependencies for the trailapp module, add the modules, JARs, and libraries.
+This project has dependencies with the Google Play Services and Android Support library, as well as the Android Maps Utilities library. This is a Gradle based project which handles all the dependencies.
 
-Next, make sure the appcompat module SDK is API level 21 or up. Now you can build the project!
+At the moment this project targets API level 22 and there will encounter build errors about a values-v23 folder for the appcompat library repository. The folder needs to be moved or deleted for the build to work
 
 # Acknowledgements
-This project draws ideas from Niantic Lab's Field Trip
+This project draws ideas from Niantic Lab's Field Trip, and was first conceived at the Hack UCSC 2015 hackathon. More information may be found at the About screen.
