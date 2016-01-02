@@ -22,19 +22,15 @@ import java.util.ArrayList;
  */
 
 public class TrailDatabaseHelper extends SQLiteOpenHelper {
-    public static final int MARKER_PARKING = 0, MARKER_ENTRANCE = 1, MARKER_RESTROOM = 2;
-
     private static final String DB_NAME = "trails.sqlite", TAG = "TrailDatabaseHelper";
     private static final int VERSION = 1;
 
-    private static final String TABLE_TRAIL = "trail", TABLE_LOC = "location", TABLE_MARKER = "marker",
-        COL_TRAIL_START_LAT = "start_lat", COL_TRAIL_START_LONG = "start_long", COL_TRAIL_COLOR = "color",
+    private static final String TABLE_TRAIL = "trail", TABLE_LOC = "location", TABLE_MARKER = "marker", COL_TRAIL_COLOR = "color",
         COL_LOC_LAT = "lat", COL_LOC_LONG = "long", COL_TRAIL_ID = "_id", COL_ID = "trail_id", COL_MARKER_TYPE = "type";
 
     public TrailDatabaseHelper(Context context) {
         super(context, DB_NAME, null, VERSION);
     }
-
 
     /**
      * Upon creation of the database, three tables are made to represent serialized Locations, Markers, and Trails
@@ -44,7 +40,7 @@ public class TrailDatabaseHelper extends SQLiteOpenHelper {
     @Override
     public void onCreate(SQLiteDatabase db) {
         //create the "trail" table, each entry has a trail ID, a starting lat and long coordinate for polyline, and color
-        db.execSQL("create table " + TABLE_TRAIL + " ( _id integer primary key autoincrement, start_lat real, start_long real, color integer)");
+        db.execSQL("create table " + TABLE_TRAIL + " ( _id integer primary key autoincrement, color integer)");
         //location table, each entry has a reference to the trail database ID, lat and long
         db.execSQL("create table " + TABLE_LOC + " ( trail_id integer references trail(_id), lat real, long real)");
         //marker table, with entries lat and long (not associated with trails for now)
@@ -63,18 +59,15 @@ public class TrailDatabaseHelper extends SQLiteOpenHelper {
 
     public void insertTrail(Trail t) {
         ContentValues cv = new ContentValues();
-        LatLng temp = t.getTrailCoords().get(0);
 
         //Set essential information about trail
-        cv.put(COL_TRAIL_START_LAT, temp.latitude);
-        cv.put(COL_TRAIL_START_LONG, temp.longitude);
         cv.put(COL_TRAIL_COLOR, t.getColor());
         SQLiteDatabase DB = getWritableDatabase();
         long id = DB.insert(TABLE_TRAIL, null, cv);//returns ID of row, which we use for the trail ID
 
         //Set all locations into its table with the ID. The transaction speeds things up a ton
         DB.beginTransaction();
-        SQLiteStatement stmt = DB.compileStatement("insert into location (trail_id, lat, long) values (?, ?, ?);");
+        SQLiteStatement stmt = DB.compileStatement("insert into " + TABLE_LOC + " (trail_id, lat, long) values (?, ?, ?);");
         for(LatLng l: t.getTrailCoords())
             insertLoc(id, l, stmt);
 
@@ -84,13 +77,25 @@ public class TrailDatabaseHelper extends SQLiteOpenHelper {
         Log.d(TAG, "Successfully inserted trail with ID " + Long.toString(id));
     }
 
+    public void insertMarkers(ArrayList<Marker> a) {
+        SQLiteDatabase DB = getWritableDatabase();
+
+        DB.beginTransaction();
+        SQLiteStatement st = DB.compileStatement("insert into " + TABLE_MARKER + " (type, lat, long) values (?, ?, ?);");
+        for(Marker m: a)
+            insertMarker(m.getType(), m.getLoc(), st);
+
+        DB.setTransactionSuccessful();
+        DB.endTransaction();
+    }
+
     /**
      * Inserts a trail into the database
      * @param trailId the Trail to store
      * @param loc The coordinates
      */
 
-    public void insertLoc(long trailId, LatLng loc, SQLiteStatement st) {
+    private void insertLoc(long trailId, LatLng loc, SQLiteStatement st) {
         st.bindLong(1, trailId);
         st.bindDouble(2, loc.latitude);
         st.bindDouble(3, loc.longitude);
@@ -100,19 +105,13 @@ public class TrailDatabaseHelper extends SQLiteOpenHelper {
     }
 
     /**
-     * Insert a marker into the database
+     * Insert a marker into the database - same thing as insertLoc
      * @param type The type of the marker
      * @param loc The marker's coordinates
-     * @return the ID of the marker (unused)
      */
 
-    public long insertMarker(int type, LatLng loc) {
-        ContentValues cv = new ContentValues();
-        cv.put(COL_LOC_LAT, loc.latitude);
-        cv.put(COL_LOC_LONG, loc.longitude);
-        cv.put(COL_MARKER_TYPE, type);
-
-        return getWritableDatabase().insert(TABLE_MARKER, null, cv);
+    private void insertMarker(int type, LatLng loc, SQLiteStatement st) {
+        insertLoc(type, loc, st);
     }
 
     /**

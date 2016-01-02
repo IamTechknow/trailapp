@@ -8,7 +8,6 @@ import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.AsyncTask;
 import android.os.Bundle;
-import android.os.Handler;
 import android.support.design.widget.NavigationView;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
@@ -39,7 +38,6 @@ import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
-import com.google.android.gms.maps.model.Polyline;
 import com.google.android.gms.maps.model.PolylineOptions;
 import com.google.maps.android.kml.KmlLayer;
 
@@ -313,18 +311,82 @@ public class TrailActivity extends AppCompatActivity {
 		return is;
 	}
 
-	private class TrailData extends AsyncTask<Void, Void, Document> {
+	private class ListWrapper {
+		public ArrayList<com.ucschackathon.app.Marker> markers;
+		public ArrayList<Trail> trails;
+
+		public ListWrapper(ArrayList<com.ucschackathon.app.Marker> markers, ArrayList<Trail> trails) {
+			this.markers = markers;
+			this.trails = trails;
+		}
+	}
+
+	private class TrailData extends AsyncTask<Void, Void, ListWrapper> {
 		private Document document;
 
 		@Override
-		protected Document doInBackground(Void... params) {
+		protected ListWrapper doInBackground(Void... params) {
 			try {
+				ArrayList<com.ucschackathon.app.Marker> markers = new ArrayList<>();
+				ArrayList<Trail> trails = new ArrayList<>();
 				InputStream inputStream = getKMLasStream();
+
 				//Parse the KML input stream
 				DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
 				DocumentBuilder db = dbf.newDocumentBuilder();
 				document = db.parse(inputStream);
-				return document;
+
+				NodeList coordinates = document.getElementsByTagName("coordinates");
+				if (coordinates.getLength() > 0) {
+					//Get the path data to parse
+					int index = 0;
+					for ( ; index < 2; index++) { //Markers for restrooms
+						String coord = coordinates.item(index).getFirstChild().getNodeValue();
+						markers.add(parseMarker(coord, "Restrooms"));
+					}
+
+					for (index = 8; index < 42; index++) { //Markers for trail entrances
+						String coord = coordinates.item(index).getFirstChild().getNodeValue();
+						markers.add(parseMarker(coord, "Trail Entrance"));
+					}
+
+					for(index = 42; index < 48; index++) { //Markers for Parking
+						String coord = coordinates.item(index).getFirstChild().getNodeValue();
+						markers.add(parseMarker(coord, "Parking"));
+					}
+
+					for(index = 48; index < 113; index++) { //Draw all the trails!
+						ArrayList<LatLng> coords = new ArrayList<>();
+						String path = coordinates.item(index).getFirstChild().getNodeValue();
+						parseTrail(path, coords); //Not displaying markers
+
+						int c;
+						switch(index) { //Draw trails with right color
+							case 62: case 64: case 74: case 75: case 76: case 77: case 78:
+							case 86: case 87: case 110: //Watsonville Slough Trails
+								c = Color.GREEN;
+								break;
+							case 112: //Watsonville Slough
+								c = Color.BLUE;
+								break;
+							default:
+								c = Color.RED;
+								break;
+						}
+
+						Trail t = new Trail(coords, c);
+						trails.add(t);
+					}
+
+					//Save all data to DB here
+					for(Trail t: trails)
+						mHelper.insertTrail(t);
+
+					mHelper.insertMarkers(markers);
+				} else
+					return null;
+
+				return new ListWrapper(markers, trails);
 			}
 			catch (IOException | ParserConfigurationException | SAXException e) {
 				e.printStackTrace();
@@ -339,53 +401,29 @@ public class TrailActivity extends AppCompatActivity {
 		 */
 
 		@Override
-		protected void onPostExecute(Document result) {  // result is data returned by doInBackground TODO: Move all calculations to doInBackground()
-			NodeList coordinates = result.getElementsByTagName("coordinates");
-			if (coordinates.getLength() > 0) {
-				//Get the path data to parse
-				int index = 0;
-				ArrayList<LatLng> coords = new ArrayList<>();
+		protected void onPostExecute(ListWrapper result) {  // result is data returned by doInBackground
+			if (result != null) {
+				for(Trail t: result.trails)
+					mMap.addPolyline(new PolylineOptions().addAll(t.getTrailCoords()).color(t.getColor()).width(LINE_WIDTH));
 
-				for ( ; index < 2; index++) { //Place Markers for Parking
-					String coord = coordinates.item(index).getFirstChild().getNodeValue();
-					parseTrailOrMarker(coord, coords, "Parking");
-				}
+				for(com.ucschackathon.app.Marker m: result.markers) {
+					String label; int resourceID;
 
-				for (index = 8; index < 42; index++) { //Markers for trail entrances
-					String coord = coordinates.item(index).getFirstChild().getNodeValue();
-					parseTrailOrMarker(coord, coords, "Trail Entrance");
-				}
-
-				for(index = 42; index < 48; index++) { //Markers for restrooms
-					String coord = coordinates.item(index).getFirstChild().getNodeValue();
-					parseTrailOrMarker(coord, coords, "Restrooms");
-				}
-
-				for(index = 48; index < 113; index++) { //Draw all the trails!
-					String path = coordinates.item(index).getFirstChild().getNodeValue();
-					parseTrailOrMarker(path, coords, null); //Not displaying markers
-
-					//Now we can draw the polyline!
-					int c;
-					switch(index) { //Draw trails with right color
-						case 62: case 64: case 74: case 75: case 76: case 77: case 78:
-						case 86: case 87: case 110: //Watsonville Slough Trails
-							c = Color.GREEN;
+					switch(m.getType()) { //TODO: Add actual names for markers
+						case com.ucschackathon.app.Marker.ENTRANCE:
+							label = "Trail Entrance"; resourceID = R.drawable.sloughtrailentrances;
 							break;
-						case 112: //Watsonville Slough
-							c = Color.BLUE;
+						case com.ucschackathon.app.Marker.PARKING:
+							label = "Parking"; resourceID = R.drawable.sloughtrailparking;
 							break;
-						default:
-							c = Color.RED;
+						case com.ucschackathon.app.Marker.RESTROOM:
+							label = "Restroom"; resourceID = R.drawable.bathrooms;
+							break;
+						default: //For completeness
+							label = "Unknown marker"; resourceID = R.drawable.common_ic_googleplayservices;
 							break;
 					}
-					//Create a Trail object to serialize to the database
-					Trail t = new Trail(coords, c);
-					//mThread.saveTrail(t);
-					mHelper.insertTrail(t);
-
-					PolylineOptions ops = new PolylineOptions().addAll(coords).color(c).width(LINE_WIDTH);
-					mMap.addPolyline(ops);
+					mMap.addMarker(new MarkerOptions().position(m.getLoc()).title(label).icon(BitmapDescriptorFactory.fromResource(resourceID)));
 				}
 
 				//Done! Save onto Preferences that database is set
@@ -393,11 +431,29 @@ public class TrailActivity extends AppCompatActivity {
 				mPrefs.edit().putBoolean(PREFS_HAVE_TRAIL_DB, mHaveTrailDB).apply();
 			} else //NodeList had no coordinate entries. Why?
 				Snackbar.make(mCoordinatorLayout, "Data not accessed. Try again", Snackbar.LENGTH_LONG).show();
-
 		}
 
-		//Parse the coordinates and fill the arraylist. If necessary, insert markers here.
-		private void parseTrailOrMarker(String path, ArrayList<LatLng> coords, String iconName) {
+		private com.ucschackathon.app.Marker parseMarker(String path, String iconName) {
+			String[] lngLat = path.split(","); //split the coordinates by a comma to get individual coordinates
+			String lat = lngLat[1], lng = lngLat[0].substring(lngLat[0].indexOf('-'));
+
+			int i = 0;
+			switch(iconName) {
+				case "Parking":
+					i = com.ucschackathon.app.Marker.PARKING;
+					break;
+				case "Trail Entrance":
+					i = com.ucschackathon.app.Marker.ENTRANCE;
+					break;
+				case "Restrooms":
+					i = com.ucschackathon.app.Marker.RESTROOM;
+					break;
+			}
+			return new com.ucschackathon.app.Marker(i, Double.parseDouble(lat), Double.parseDouble(lng));
+		}
+
+		//Parse the coordinates and fill the arraylist
+		private void parseTrail(String path, ArrayList<LatLng> coords) {
 			coords.clear();
 			String[] lngLat = path.split(","); //split the coordinates by a comma to get individual coordinates
 			for (int i = 0; i < lngLat.length - 2; i = i + 2) { //lat actually comes second
@@ -406,19 +462,6 @@ public class TrailActivity extends AppCompatActivity {
 				LatLng obj = new LatLng(Double.parseDouble(lat), Double.parseDouble(lng));
 				coords.add(obj);
 			}
-
-			if(iconName != null)
-				for(LatLng l: coords)  //add the markers using the trail access icon found in the organization's website. also add marker info to the sqlite database
-					if(iconName.compareTo("Parking") == 0) {
-						mHelper.insertMarker(TrailDatabaseHelper.MARKER_PARKING, l);
-						mMap.addMarker(new MarkerOptions().position(l).title("Parking").icon(BitmapDescriptorFactory.fromResource(R.drawable.sloughtrailparking)));
-					} else if(iconName.compareTo("Trail Entrance") == 0) {
-						mHelper.insertMarker(TrailDatabaseHelper.MARKER_ENTRANCE, l);
-						mMap.addMarker(new MarkerOptions().position(l).title("Trail Entrance").icon(BitmapDescriptorFactory.fromResource(R.drawable.sloughtrailentrances)));
-					} else if(iconName.compareTo("Restrooms") == 0) {
-						mHelper.insertMarker(TrailDatabaseHelper.MARKER_RESTROOM, l);
-						mMap.addMarker(new MarkerOptions().position(l).title("Restroom").icon(BitmapDescriptorFactory.fromResource(R.drawable.bathrooms)));
-					}
 		}
 	}
 
@@ -427,7 +470,6 @@ public class TrailActivity extends AppCompatActivity {
 	 */
 
 	private class TrailLayer extends AsyncTask<Void, Void, byte[]> {
-
 		@Override
 		protected byte[] doInBackground(Void... params) {
 			try {
@@ -464,23 +506,20 @@ public class TrailActivity extends AppCompatActivity {
 		ArrayList<Trail> trails = mHelper.queryTrails();
 		ArrayList<com.ucschackathon.app.Marker> markers = mHelper.queryMarkers();
 
-		for(Trail t: trails) {
-			PolylineOptions ops = new PolylineOptions().addAll(t.getTrailCoords()).color(t.getColor());
-			Polyline line = mMap.addPolyline(ops);
-			line.setWidth(5.0F);
-		}
+		for(Trail t: trails)
+			mMap.addPolyline(new PolylineOptions().addAll(t.getTrailCoords()).color(t.getColor()).width(LINE_WIDTH));
 
 		for(com.ucschackathon.app.Marker m: markers) {
 			String label; int resourceID;
 
 			switch(m.getType()) {
-				case TrailDatabaseHelper.MARKER_ENTRANCE:
+				case com.ucschackathon.app.Marker.ENTRANCE:
 					label = "Trail Entrance"; resourceID = R.drawable.sloughtrailentrances;
 					break;
-				case TrailDatabaseHelper.MARKER_PARKING:
+				case com.ucschackathon.app.Marker.PARKING:
 					label = "Parking"; resourceID = R.drawable.sloughtrailparking;
 					break;
-				case TrailDatabaseHelper.MARKER_RESTROOM:
+				case com.ucschackathon.app.Marker.RESTROOM:
 					label = "Restroom"; resourceID = R.drawable.bathrooms;
 					break;
 				default: //For completeness
