@@ -10,7 +10,7 @@ import com.google.android.gms.maps.model.LatLng;
  */
 
 public class Marker {
-    public static final int NONE = 0, PARKING = 1, ENTRANCE = 2, RESTROOM = 3;
+    public static final int NONE = 0, PARKING = 1, ENTRANCE = 2, RESTROOM = 3, NATURECENTER = 4;
 
     private int type;
     private LatLng loc;

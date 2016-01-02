@@ -149,6 +149,10 @@ public class TrailActivity extends AppCompatActivity {
 							e.printStackTrace();
 						}
 						break;
+					case R.id.aboutNav:
+						Intent intent = new Intent(getApplicationContext(), AboutActivity.class);
+						startActivity(intent);
+						break;
 					default:
 						break;
 				}
@@ -342,17 +346,22 @@ public class TrailActivity extends AppCompatActivity {
 					int index = 0;
 					for ( ; index < 2; index++) { //Markers for restrooms
 						String coord = coordinates.item(index).getFirstChild().getNodeValue();
-						markers.add(parseMarker(coord, "Restrooms"));
+						markers.add(parseMarker(coord, com.ucschackathon.app.Marker.RESTROOM));
+					}
+
+					for (index = 6 ; index < 8; index++) { //Markers for Nature Center
+						String coord = coordinates.item(index).getFirstChild().getNodeValue();
+						markers.add(parseMarker(coord, com.ucschackathon.app.Marker.NATURECENTER));
 					}
 
 					for (index = 8; index < 42; index++) { //Markers for trail entrances
 						String coord = coordinates.item(index).getFirstChild().getNodeValue();
-						markers.add(parseMarker(coord, "Trail Entrance"));
+						markers.add(parseMarker(coord, com.ucschackathon.app.Marker.ENTRANCE));
 					}
 
 					for(index = 42; index < 48; index++) { //Markers for Parking
 						String coord = coordinates.item(index).getFirstChild().getNodeValue();
-						markers.add(parseMarker(coord, "Parking"));
+						markers.add(parseMarker(coord, com.ucschackathon.app.Marker.PARKING));
 					}
 
 					for(index = 48; index < 113; index++) { //Draw all the trails!
@@ -419,6 +428,9 @@ public class TrailActivity extends AppCompatActivity {
 						case com.ucschackathon.app.Marker.RESTROOM:
 							label = "Restroom"; resourceID = R.drawable.bathrooms;
 							break;
+						case com.ucschackathon.app.Marker.NATURECENTER:
+							label = "Nature Center"; resourceID = R.drawable.naturecenters;
+							break;
 						default: //For completeness
 							label = "Unknown marker"; resourceID = R.drawable.common_ic_googleplayservices;
 							break;
@@ -433,23 +445,11 @@ public class TrailActivity extends AppCompatActivity {
 				Snackbar.make(mCoordinatorLayout, "Data not accessed. Try again", Snackbar.LENGTH_LONG).show();
 		}
 
-		private com.ucschackathon.app.Marker parseMarker(String path, String iconName) {
+		private com.ucschackathon.app.Marker parseMarker(String path, int type) {
 			String[] lngLat = path.split(","); //split the coordinates by a comma to get individual coordinates
 			String lat = lngLat[1], lng = lngLat[0].substring(lngLat[0].indexOf('-'));
 
-			int i = 0;
-			switch(iconName) {
-				case "Parking":
-					i = com.ucschackathon.app.Marker.PARKING;
-					break;
-				case "Trail Entrance":
-					i = com.ucschackathon.app.Marker.ENTRANCE;
-					break;
-				case "Restrooms":
-					i = com.ucschackathon.app.Marker.RESTROOM;
-					break;
-			}
-			return new com.ucschackathon.app.Marker(i, Double.parseDouble(lat), Double.parseDouble(lng));
+			return new com.ucschackathon.app.Marker(type, Double.parseDouble(lat), Double.parseDouble(lng));
 		}
 
 		//Parse the coordinates and fill the arraylist
@@ -521,6 +521,9 @@ public class TrailActivity extends AppCompatActivity {
 					break;
 				case com.ucschackathon.app.Marker.RESTROOM:
 					label = "Restroom"; resourceID = R.drawable.bathrooms;
+					break;
+				case com.ucschackathon.app.Marker.NATURECENTER:
+					label = "Nature Center"; resourceID = R.drawable.naturecenters;
 					break;
 				default: //For completeness
 					label = "Unknown marker"; resourceID = R.drawable.common_ic_googleplayservices;

@@ -1,8 +1,24 @@
 <?xml version="1.0" encoding="utf-8"?>
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
-    <group android:checkableBehavior="single">
+    <group android:checkableBehavior="single" android:id="@+id/trailGroup">
         <item android:id="@+id/showTrailsNav"
             android:title="@string/navShowTrails"
         />
+        <item android:id="@+id/showLayerNav"
+            android:title="@string/showTrailsAlt"
+        />
+    </group>
+    <group android:checkableBehavior="single" android:id="@+id/mapOptions">
+        <item android:id="@+id/showMarkersNav"
+            android:title="@string/showMarkers"
+            />
+        <item android:id="@+id/satellite_enabled_nav"
+            android:title="@string/satelliteOn"
+            />
+    </group>
+    <group android:checkableBehavior="single" android:id="@+id/about">
+        <item android:id="@+id/aboutNav"
+            android:title="@string/about_menu_option"
+            />
     </group>
 </menu>
