@@ -26,7 +26,7 @@ public class TrailDatabaseHelper extends SQLiteOpenHelper {
     private static final int VERSION = 1;
 
     private static final String TABLE_TRAIL = "trail", TABLE_LOC = "location", TABLE_MARKER = "marker", COL_TRAIL_COLOR = "color",
-        COL_LOC_LAT = "lat", COL_LOC_LONG = "long", COL_TRAIL_ID = "_id", COL_ID = "trail_id", COL_MARKER_TYPE = "type";
+        COL_LOC_LAT = "lat", COL_LOC_LONG = "long", COL_TRAIL_ID = "_id", COL_ID = "trail_id", COL_MARKER_TYPE = "type", COL_MARKER_TITLE = "title";
 
     public TrailDatabaseHelper(Context context) {
         super(context, DB_NAME, null, VERSION);
@@ -44,7 +44,7 @@ public class TrailDatabaseHelper extends SQLiteOpenHelper {
         //location table, each entry has a reference to the trail database ID, lat and long
         db.execSQL("create table " + TABLE_LOC + " ( trail_id integer references trail(_id), lat real, long real)");
         //marker table, with entries lat and long (not associated with trails for now)
-        db.execSQL("create table " + TABLE_MARKER + " ( type integer, lat real, long real)");
+        db.execSQL("create table " + TABLE_MARKER + " ( type integer, lat real, long real, title text)");
     }
 
     @Override
@@ -81,9 +81,9 @@ public class TrailDatabaseHelper extends SQLiteOpenHelper {
         SQLiteDatabase DB = getWritableDatabase();
 
         DB.beginTransaction();
-        SQLiteStatement st = DB.compileStatement("insert into " + TABLE_MARKER + " (type, lat, long) values (?, ?, ?);");
+        SQLiteStatement st = DB.compileStatement("insert into " + TABLE_MARKER + " (type, lat, long, title) values (?, ?, ?, ?);");
         for(Marker m: a)
-            insertMarker(m.getType(), m.getLoc(), st);
+            insertMarker(m.getType(), m.getLoc(), m.getTitle(), st);
 
         DB.setTransactionSuccessful();
         DB.endTransaction();
@@ -93,6 +93,7 @@ public class TrailDatabaseHelper extends SQLiteOpenHelper {
      * Inserts a trail into the database
      * @param trailId the Trail to store
      * @param loc The coordinates
+     * @param st the statement to bind data with
      */
 
     private void insertLoc(long trailId, LatLng loc, SQLiteStatement st) {
@@ -108,10 +109,18 @@ public class TrailDatabaseHelper extends SQLiteOpenHelper {
      * Insert a marker into the database - same thing as insertLoc
      * @param type The type of the marker
      * @param loc The marker's coordinates
+     * @param st the statement to bind data with
+     * @param title The marker's title
      */
 
-    private void insertMarker(int type, LatLng loc, SQLiteStatement st) {
-        insertLoc(type, loc, st);
+    private void insertMarker(int type, LatLng loc, String title, SQLiteStatement st) {
+        st.bindLong(1, type);
+        st.bindDouble(2, loc.latitude);
+        st.bindDouble(3, loc.longitude);
+        st.bindString(4, title);
+
+        st.executeInsert(); //the entry ID (unused)
+        st.clearBindings();
     }
 
     /**
@@ -160,7 +169,7 @@ public class TrailDatabaseHelper extends SQLiteOpenHelper {
         marker_c.moveToFirst();
 
         while(!marker_c.isAfterLast()) {
-            Marker m = new Marker(marker_c.getInt(marker_c.getColumnIndex(COL_MARKER_TYPE)), marker_c.getDouble(marker_c.getColumnIndex(COL_LOC_LAT)),marker_c.getDouble(marker_c.getColumnIndex(COL_LOC_LONG)));
+            Marker m = new Marker(marker_c.getInt(marker_c.getColumnIndex(COL_MARKER_TYPE)), marker_c.getString(marker_c.getColumnIndex(COL_MARKER_TITLE)), marker_c.getDouble(marker_c.getColumnIndex(COL_LOC_LAT)),marker_c.getDouble(marker_c.getColumnIndex(COL_LOC_LONG)));
             markers.add(m);
             marker_c.moveToNext();
         }

@@ -42,6 +42,7 @@ import com.google.android.gms.maps.model.PolylineOptions;
 import com.google.maps.android.kml.KmlLayer;
 
 import org.w3c.dom.Document;
+import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
 import org.xmlpull.v1.XmlPullParserException;
@@ -342,26 +343,35 @@ public class TrailActivity extends AppCompatActivity {
 
 				NodeList coordinates = document.getElementsByTagName("coordinates");
 				if (coordinates.getLength() > 0) {
-					//Get the path data to parse
+					//Get the path data to parse. Start with Markers then trails. To get the title, access the Placemark parent node
+					//instead of accessing the Folder groups. It is known the first element of a placemark element has the title
 					int index = 0;
 					for ( ; index < 2; index++) { //Markers for restrooms
-						String coord = coordinates.item(index).getFirstChild().getNodeValue();
-						markers.add(parseMarker(coord, com.ucschackathon.app.Marker.RESTROOM));
+						Node coordinate = coordinates.item(index).getFirstChild();
+						String coord = coordinate.getNodeValue(), title = coordinate.getParentNode().getParentNode().getParentNode().getChildNodes().item(1).getFirstChild().getNodeValue();
+
+						markers.add(parseMarker(coord, com.ucschackathon.app.Marker.RESTROOM, title));
 					}
 
 					for (index = 6 ; index < 8; index++) { //Markers for Nature Center
-						String coord = coordinates.item(index).getFirstChild().getNodeValue();
-						markers.add(parseMarker(coord, com.ucschackathon.app.Marker.NATURECENTER));
+						Node coordinate = coordinates.item(index).getFirstChild();
+						String coord = coordinate.getNodeValue(), title = coordinate.getParentNode().getParentNode().getParentNode().getChildNodes().item(1).getFirstChild().getNodeValue();
+
+						markers.add(parseMarker(coord, com.ucschackathon.app.Marker.NATURECENTER, title));
 					}
 
 					for (index = 8; index < 42; index++) { //Markers for trail entrances
-						String coord = coordinates.item(index).getFirstChild().getNodeValue();
-						markers.add(parseMarker(coord, com.ucschackathon.app.Marker.ENTRANCE));
+						Node coordinate = coordinates.item(index).getFirstChild();
+						String coord = coordinate.getNodeValue(), title = coordinate.getParentNode().getParentNode().getParentNode().getChildNodes().item(1).getFirstChild().getNodeValue();
+
+						markers.add(parseMarker(coord, com.ucschackathon.app.Marker.ENTRANCE, title));
 					}
 
 					for(index = 42; index < 48; index++) { //Markers for Parking
-						String coord = coordinates.item(index).getFirstChild().getNodeValue();
-						markers.add(parseMarker(coord, com.ucschackathon.app.Marker.PARKING));
+						Node coordinate = coordinates.item(index).getFirstChild();
+						String coord = coordinate.getNodeValue(), title = coordinate.getParentNode().getParentNode().getParentNode().getChildNodes().item(1).getFirstChild().getNodeValue();
+
+						markers.add(parseMarker(coord, com.ucschackathon.app.Marker.PARKING, title));
 					}
 
 					for(index = 48; index < 113; index++) { //Draw all the trails!
@@ -416,26 +426,26 @@ public class TrailActivity extends AppCompatActivity {
 					mMap.addPolyline(new PolylineOptions().addAll(t.getTrailCoords()).color(t.getColor()).width(LINE_WIDTH));
 
 				for(com.ucschackathon.app.Marker m: result.markers) {
-					String label; int resourceID;
+					int resourceID;
 
 					switch(m.getType()) { //TODO: Add actual names for markers
 						case com.ucschackathon.app.Marker.ENTRANCE:
-							label = "Trail Entrance"; resourceID = R.drawable.sloughtrailentrances;
+							resourceID = R.drawable.sloughtrailentrances;
 							break;
 						case com.ucschackathon.app.Marker.PARKING:
-							label = "Parking"; resourceID = R.drawable.sloughtrailparking;
+							resourceID = R.drawable.sloughtrailparking;
 							break;
 						case com.ucschackathon.app.Marker.RESTROOM:
-							label = "Restroom"; resourceID = R.drawable.bathrooms;
+							resourceID = R.drawable.bathrooms;
 							break;
 						case com.ucschackathon.app.Marker.NATURECENTER:
-							label = "Nature Center"; resourceID = R.drawable.naturecenters;
+							resourceID = R.drawable.naturecenters;
 							break;
 						default: //For completeness
-							label = "Unknown marker"; resourceID = R.drawable.common_ic_googleplayservices;
+							resourceID = R.drawable.common_ic_googleplayservices;
 							break;
 					}
-					mMap.addMarker(new MarkerOptions().position(m.getLoc()).title(label).icon(BitmapDescriptorFactory.fromResource(resourceID)));
+					mMap.addMarker(new MarkerOptions().position(m.getLoc()).title(m.getTitle()).icon(BitmapDescriptorFactory.fromResource(resourceID)));
 				}
 
 				//Done! Save onto Preferences that database is set
@@ -445,11 +455,11 @@ public class TrailActivity extends AppCompatActivity {
 				Snackbar.make(mCoordinatorLayout, "Data not accessed. Try again", Snackbar.LENGTH_LONG).show();
 		}
 
-		private com.ucschackathon.app.Marker parseMarker(String path, int type) {
+		private com.ucschackathon.app.Marker parseMarker(String path, int type, String title) {
 			String[] lngLat = path.split(","); //split the coordinates by a comma to get individual coordinates
 			String lat = lngLat[1], lng = lngLat[0].substring(lngLat[0].indexOf('-'));
 
-			return new com.ucschackathon.app.Marker(type, Double.parseDouble(lat), Double.parseDouble(lng));
+			return new com.ucschackathon.app.Marker(type, title, Double.parseDouble(lat), Double.parseDouble(lng));
 		}
 
 		//Parse the coordinates and fill the arraylist
@@ -510,26 +520,26 @@ public class TrailActivity extends AppCompatActivity {
 			mMap.addPolyline(new PolylineOptions().addAll(t.getTrailCoords()).color(t.getColor()).width(LINE_WIDTH));
 
 		for(com.ucschackathon.app.Marker m: markers) {
-			String label; int resourceID;
+			int resourceID;
 
 			switch(m.getType()) {
 				case com.ucschackathon.app.Marker.ENTRANCE:
-					label = "Trail Entrance"; resourceID = R.drawable.sloughtrailentrances;
+					resourceID = R.drawable.sloughtrailentrances;
 					break;
 				case com.ucschackathon.app.Marker.PARKING:
-					label = "Parking"; resourceID = R.drawable.sloughtrailparking;
+					resourceID = R.drawable.sloughtrailparking;
 					break;
 				case com.ucschackathon.app.Marker.RESTROOM:
-					label = "Restroom"; resourceID = R.drawable.bathrooms;
+					resourceID = R.drawable.bathrooms;
 					break;
 				case com.ucschackathon.app.Marker.NATURECENTER:
-					label = "Nature Center"; resourceID = R.drawable.naturecenters;
+					resourceID = R.drawable.naturecenters;
 					break;
 				default: //For completeness
-					label = "Unknown marker"; resourceID = R.drawable.common_ic_googleplayservices;
+					resourceID = R.drawable.common_ic_googleplayservices;
 					break;
 			}
-			mMap.addMarker(new MarkerOptions().position(m.getLoc()).title(label).icon(BitmapDescriptorFactory.fromResource(resourceID)));
+			mMap.addMarker(new MarkerOptions().position(m.getLoc()).title(m.getTitle()).icon(BitmapDescriptorFactory.fromResource(resourceID)));
 		}
 	}
 }

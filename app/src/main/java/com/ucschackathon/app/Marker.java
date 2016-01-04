@@ -14,13 +14,15 @@ public class Marker {
 
     private int type;
     private LatLng loc;
+    private String title;
 
     public Marker() {
         type = NONE;
     }
 
-    public Marker(int t, double x, double y) {
+    public Marker(int t, String Title, double x, double y) {
         type = t;
+        title = Title;
         loc = new LatLng(x, y);
     }
 
@@ -38,5 +40,13 @@ public class Marker {
 
     public void setLoc(LatLng loc) {
         this.loc = loc;
+    }
+
+    public String getTitle() {
+        return title;
+    }
+
+    public void setTitle(String title) {
+        this.title = title;
     }
 }
