@@ -5,6 +5,7 @@
     <string name="satellite_menu_option">Enable Satellite Mode</string>
     <string name="about_menu_option">About this App</string>
     <string name="showMarkers">Show Points of Interest</string>
+    <string name="listMarkers">List Markers</string>
     <string name="showTrails">Display the trails</string>
     <string name="showTrailsAlt">Display the KML trail layer</string>
     <string name="hideData">Hide data</string>
@@ -12,6 +13,7 @@
     <string name="satelliteOff">Satellite view off</string>
     <string name="snackBarToggle">Toggle</string>
     <string name="navShowTrails">View trail data</string>
+    <string name="needTrailData">Get the trail data first!</string>
     <string name="aboutText"> <!-- Use CDATA to prevent android from parsing html tags -->
         <![CDATA[
         <h1>About</h1><p>This mobile application is created during the HACK UCSC 2015 competition

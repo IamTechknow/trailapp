@@ -7,6 +7,9 @@
         <item android:id="@+id/showLayerNav"
             android:title="@string/showTrailsAlt"
         />
+        <item android:id="@+id/listMarkersNav"
+            android:title="@string/listMarkers"
+        />
     </group>
     <group android:checkableBehavior="single" android:id="@+id/mapOptions">
         <item android:id="@+id/showMarkersNav"

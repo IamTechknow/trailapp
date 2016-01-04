@@ -143,12 +143,30 @@ public class TrailActivity extends AppCompatActivity {
 				switch(menuItem.getItemId()) {
 					case R.id.showTrailsNav:
 						menuItem.setChecked(true);
-						mDrawerLayout.closeDrawers();
 						try {
 							showTrails();
 						} catch (InterruptedException | ExecutionException e) {
 							e.printStackTrace();
 						}
+						break;
+					case R.id.showLayerNav:
+						try { //We could recycle mKmlLayer but not all data (the text overlays) is preserved
+							showTrailsAlt();
+						} catch (ExecutionException | InterruptedException e) {
+							e.printStackTrace();
+						}
+						break;
+					case R.id.listMarkersNav:
+						if(mHaveTrailDB)
+							startActivity(new Intent(getApplicationContext(), ListMarkersActivity.class));
+						else
+							Snackbar.make(mCoordinatorLayout, R.string.needTrailData, Snackbar.LENGTH_SHORT).show();
+						break;
+					case R.id.showMarkersNav:
+						showMarkers();
+						break;
+					case R.id.satellite_enabled_nav:
+						toggleMapLayer();
 						break;
 					case R.id.aboutNav:
 						Intent intent = new Intent(getApplicationContext(), AboutActivity.class);
@@ -157,6 +175,7 @@ public class TrailActivity extends AppCompatActivity {
 					default:
 						break;
 				}
+				mDrawerLayout.closeDrawers(); //always close drawer when option is selected
 				return true;
 			}
 		});
@@ -426,25 +445,7 @@ public class TrailActivity extends AppCompatActivity {
 					mMap.addPolyline(new PolylineOptions().addAll(t.getTrailCoords()).color(t.getColor()).width(LINE_WIDTH));
 
 				for(com.ucschackathon.app.Marker m: result.markers) {
-					int resourceID;
-
-					switch(m.getType()) { //TODO: Add actual names for markers
-						case com.ucschackathon.app.Marker.ENTRANCE:
-							resourceID = R.drawable.sloughtrailentrances;
-							break;
-						case com.ucschackathon.app.Marker.PARKING:
-							resourceID = R.drawable.sloughtrailparking;
-							break;
-						case com.ucschackathon.app.Marker.RESTROOM:
-							resourceID = R.drawable.bathrooms;
-							break;
-						case com.ucschackathon.app.Marker.NATURECENTER:
-							resourceID = R.drawable.naturecenters;
-							break;
-						default: //For completeness
-							resourceID = R.drawable.common_ic_googleplayservices;
-							break;
-					}
+					int resourceID = getMarkerIconID(m);
 					mMap.addMarker(new MarkerOptions().position(m.getLoc()).title(m.getTitle()).icon(BitmapDescriptorFactory.fromResource(resourceID)));
 				}
 
@@ -520,26 +521,31 @@ public class TrailActivity extends AppCompatActivity {
 			mMap.addPolyline(new PolylineOptions().addAll(t.getTrailCoords()).color(t.getColor()).width(LINE_WIDTH));
 
 		for(com.ucschackathon.app.Marker m: markers) {
-			int resourceID;
-
-			switch(m.getType()) {
-				case com.ucschackathon.app.Marker.ENTRANCE:
-					resourceID = R.drawable.sloughtrailentrances;
-					break;
-				case com.ucschackathon.app.Marker.PARKING:
-					resourceID = R.drawable.sloughtrailparking;
-					break;
-				case com.ucschackathon.app.Marker.RESTROOM:
-					resourceID = R.drawable.bathrooms;
-					break;
-				case com.ucschackathon.app.Marker.NATURECENTER:
-					resourceID = R.drawable.naturecenters;
-					break;
-				default: //For completeness
-					resourceID = R.drawable.common_ic_googleplayservices;
-					break;
-			}
+			int resourceID = getMarkerIconID(m);
 			mMap.addMarker(new MarkerOptions().position(m.getLoc()).title(m.getTitle()).icon(BitmapDescriptorFactory.fromResource(resourceID)));
 		}
+	}
+
+	//Obtains the resource ID for the given Marker type
+	public static int getMarkerIconID(com.ucschackathon.app.Marker m) {
+		int resourceID;
+
+		switch(m.getType()) {
+			case com.ucschackathon.app.Marker.ENTRANCE:
+				resourceID = R.drawable.sloughtrailentrances;
+				break;
+			case com.ucschackathon.app.Marker.PARKING:
+				resourceID = R.drawable.sloughtrailparking;
+				break;
+			case com.ucschackathon.app.Marker.RESTROOM:
+				resourceID = R.drawable.bathrooms;
+				break;
+			case com.ucschackathon.app.Marker.NATURECENTER:
+				resourceID = R.drawable.naturecenters;
+				break;
+			default: //For completeness
+				resourceID = R.drawable.common_ic_googleplayservices;
+		}
+		return resourceID;
 	}
 }
