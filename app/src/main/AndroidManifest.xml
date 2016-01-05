@@ -30,13 +30,13 @@
         </activity>
         <activity
             android:name=".ListMarkersActivity"
-            android:label="@string/app_name">
+            android:label="@string/app_name"
+            android:launchMode="singleTop" >
             <meta-data android:name="android.support.PARENT_ACTIVITY"
                 android:value=".TrailActivity" />
         </activity>
         <activity android:name=".DetailActivity"
-                  android:label="@string/app_name"
-                  android:launchMode="singleTop">
+                  android:label="@string/app_name" >
             <meta-data android:name="android.support.PARENT_ACTIVITY"
                 android:value=".ListMarkersActivity" />
         </activity>

@@ -9,6 +9,7 @@ import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.Toolbar;
 import android.support.v7.widget.RecyclerView;
 import android.view.MenuItem;
+import android.widget.Toast;
 
 import com.ucschackathon.app.adapter.MarkerAdapter;
 
@@ -40,6 +41,9 @@ public class ListMarkersActivity extends AppCompatActivity {
         recyclerView.setItemAnimator(new DefaultItemAnimator());
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
         recyclerView.setAdapter(new MarkerAdapter(mHelper.queryMarkers(), getResources()));
+
+        //Let user know about detailed markers
+        Toast.makeText(this, R.string.list_toast, Toast.LENGTH_SHORT).show();
     }
 
     @Override

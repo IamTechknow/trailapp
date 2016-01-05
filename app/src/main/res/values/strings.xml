@@ -16,6 +16,7 @@
     <string name="needTrailData">Get the trail data first!</string>
     <string name="detail_header1">Characteristics</string>
     <string name="detail_header2">Where to find it</string>
+    <string name="list_toast">Touch an info marker for detailed information</string>
 
     <string name="cattail_characteristics">This plant is one of the most common plants growing in freshwater wetlands.
         It has long, flat light-green leaves and creeping roots. The flowers are at the end of a long

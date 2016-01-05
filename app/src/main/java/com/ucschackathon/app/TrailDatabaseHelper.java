@@ -132,7 +132,7 @@ public class TrailDatabaseHelper extends SQLiteOpenHelper {
 
     public ArrayList<Trail> queryTrails() {
         // equivalent to "select * from trail order by start_lat asc"
-        Cursor trail_c = getReadableDatabase().query(TABLE_TRAIL, null, null, null, null, null, "_id" + " asc"); //ascending from ID
+        Cursor trail_c = getReadableDatabase().query(TABLE_TRAIL, null, null, null, null, null, "_id" + " desc"); //ascending from ID
         Cursor loc_c = getReadableDatabase().query(TABLE_LOC, null, null, null, null, null, null); //don't sort but sort by ID if needed
         ArrayList<Trail> trails = new ArrayList<>();
 
