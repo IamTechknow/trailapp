@@ -10,7 +10,7 @@ import com.google.android.gms.maps.model.LatLng;
  */
 
 public class Marker {
-    public static final int NONE = 0, PARKING = 1, ENTRANCE = 2, RESTROOM = 3, NATURECENTER = 4;
+    public static final int NONE = 0, PARKING = 1, ENTRANCE = 2, RESTROOM = 3, NATURECENTER = 4, INFO = 5;
 
     private int type;
     private LatLng loc;
@@ -48,5 +48,31 @@ public class Marker {
 
     public void setTitle(String title) {
         this.title = title;
+    }
+
+    //Obtains the resource ID for the given Marker type
+    public static int getMarkerIconID(Marker m) {
+        int resourceID;
+
+        switch(m.getType()) {
+            case ENTRANCE:
+                resourceID = R.drawable.sloughtrailentrances;
+                break;
+            case PARKING:
+                resourceID = R.drawable.sloughtrailparking;
+                break;
+            case RESTROOM:
+                resourceID = R.drawable.bathrooms;
+                break;
+            case NATURECENTER:
+                resourceID = R.drawable.naturecenters;
+                break;
+            case INFO:
+                resourceID = android.R.drawable.ic_dialog_info;
+                break;
+            default: //For completeness
+                resourceID = android.R.drawable.stat_notify_error;
+        }
+        return resourceID;
     }
 }

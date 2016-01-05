@@ -59,16 +59,7 @@ import javax.xml.parsers.ParserConfigurationException;
 public class TrailActivity extends AppCompatActivity {
 	private static final String PREFS_FILE = "settings", PREFS_HAVE_TRAIL_DB = "TrailActivity.mHaveTrailDB";
 	public static final float LINE_WIDTH = 5.0F;
-
-	private static final LatLng[] WATSONVILLE = {
-			new LatLng(36.911, -121.803),
-			new LatLng(36.905060, -121.785410),
-			new LatLng(36.913525, -121.780813),
-			new LatLng(36.911101, -121.776457),
-			new LatLng(36.913507, -121.768687),
-			new LatLng(36.913690, -121.770600),
-			new LatLng(36.9016682,-121.7845458),
-	};
+	private static final LatLng CENTER = new LatLng(36.911101, -121.776457);
 
 	private DrawerLayout mDrawerLayout;
 	private CoordinatorLayout mCoordinatorLayout;
@@ -85,7 +76,7 @@ public class TrailActivity extends AppCompatActivity {
 	private GoogleMap.OnMyLocationButtonClickListener mMyLocationListener = new GoogleMap.OnMyLocationButtonClickListener() {
 		@Override
 		public boolean onMyLocationButtonClick() {
-			mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(WATSONVILLE[3], 14));
+			mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(CENTER, 14));
 			return true;
 		}
 	};
@@ -99,7 +90,7 @@ public class TrailActivity extends AppCompatActivity {
 			mMap.setOnMyLocationButtonClickListener(mMyLocationListener);
 
 			// Move the camera instantly to Watsonville with a zoom of 14.
-			mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(WATSONVILLE[3], 14));
+			mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(CENTER, 14));
 		}
 	};
 
@@ -162,9 +153,6 @@ public class TrailActivity extends AppCompatActivity {
 						else
 							Snackbar.make(mCoordinatorLayout, R.string.needTrailData, Snackbar.LENGTH_SHORT).show();
 						break;
-					case R.id.showMarkersNav:
-						showMarkers();
-						break;
 					case R.id.satellite_enabled_nav:
 						toggleMapLayer();
 						break;
@@ -215,9 +203,6 @@ public class TrailActivity extends AppCompatActivity {
 			case R.id.satellite_enabled:
 				toggleMapLayer();
 				return true;
-			case R.id.showMarkers:
-				showMarkers();
-				return true;
 			case R.id.showTrails: //Show the trails by parsing them
 				try {
 					showTrails();
@@ -245,18 +230,6 @@ public class TrailActivity extends AppCompatActivity {
 			default:
 				return super.onOptionsItemSelected(item);
 		}
-	}
-
-	public void showMarkers() {
-		markers = new Marker[]{
-			mMap.addMarker(new MarkerOptions().position(WATSONVILLE[0]).title("Nest of Osprey")),
-			mMap.addMarker(new MarkerOptions().position(WATSONVILLE[1]).title("DFG Outlook")),
-			mMap.addMarker(new MarkerOptions().position(WATSONVILLE[2]).title("Struve Slough")),
-			mMap.addMarker(new MarkerOptions().position(WATSONVILLE[3]).title("Tarplant Hill")),
-			mMap.addMarker(new MarkerOptions().position(WATSONVILLE[4]).title("Wetland restoration")),
-			mMap.addMarker(new MarkerOptions().position(WATSONVILLE[5]).title("Nature Center")),
-			mMap.addMarker(new MarkerOptions().position(WATSONVILLE[6]).title("Harkins Slough")),
-		};
 	}
 
 	public void toggleMapLayer() {
@@ -445,7 +418,7 @@ public class TrailActivity extends AppCompatActivity {
 					mMap.addPolyline(new PolylineOptions().addAll(t.getTrailCoords()).color(t.getColor()).width(LINE_WIDTH));
 
 				for(com.ucschackathon.app.Marker m: result.markers) {
-					int resourceID = getMarkerIconID(m);
+					int resourceID = com.ucschackathon.app.Marker.getMarkerIconID(m);
 					mMap.addMarker(new MarkerOptions().position(m.getLoc()).title(m.getTitle()).icon(BitmapDescriptorFactory.fromResource(resourceID)));
 				}
 
@@ -521,31 +494,8 @@ public class TrailActivity extends AppCompatActivity {
 			mMap.addPolyline(new PolylineOptions().addAll(t.getTrailCoords()).color(t.getColor()).width(LINE_WIDTH));
 
 		for(com.ucschackathon.app.Marker m: markers) {
-			int resourceID = getMarkerIconID(m);
+			int resourceID = com.ucschackathon.app.Marker.getMarkerIconID(m);
 			mMap.addMarker(new MarkerOptions().position(m.getLoc()).title(m.getTitle()).icon(BitmapDescriptorFactory.fromResource(resourceID)));
 		}
-	}
-
-	//Obtains the resource ID for the given Marker type
-	public static int getMarkerIconID(com.ucschackathon.app.Marker m) {
-		int resourceID;
-
-		switch(m.getType()) {
-			case com.ucschackathon.app.Marker.ENTRANCE:
-				resourceID = R.drawable.sloughtrailentrances;
-				break;
-			case com.ucschackathon.app.Marker.PARKING:
-				resourceID = R.drawable.sloughtrailparking;
-				break;
-			case com.ucschackathon.app.Marker.RESTROOM:
-				resourceID = R.drawable.bathrooms;
-				break;
-			case com.ucschackathon.app.Marker.NATURECENTER:
-				resourceID = R.drawable.naturecenters;
-				break;
-			default: //For completeness
-				resourceID = R.drawable.common_ic_googleplayservices;
-		}
-		return resourceID;
 	}
 }

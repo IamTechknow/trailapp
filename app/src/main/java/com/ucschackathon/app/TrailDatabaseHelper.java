@@ -84,6 +84,7 @@ public class TrailDatabaseHelper extends SQLiteOpenHelper {
         SQLiteStatement st = DB.compileStatement("insert into " + TABLE_MARKER + " (type, lat, long, title) values (?, ?, ?, ?);");
         for(Marker m: a)
             insertMarker(m.getType(), m.getLoc(), m.getTitle(), st);
+        insertPointsOfInterest(st);
 
         DB.setTransactionSuccessful();
         DB.endTransaction();
@@ -176,5 +177,19 @@ public class TrailDatabaseHelper extends SQLiteOpenHelper {
 
         marker_c.close();
         return markers;
+    }
+
+    /**
+     * Insert data about markers of interest, for setting up detailed info views
+     */
+
+    public void insertPointsOfInterest(SQLiteStatement st) {
+        insertMarker(Marker.INFO, new LatLng(36.911, -121.803), "Nest of Osprey", st);
+        insertMarker(Marker.INFO, new LatLng(36.905060, -121.785410), "DFG Outlook", st);
+        insertMarker(Marker.INFO, new LatLng(36.913525, -121.780813), "Struve Slough", st);
+        insertMarker(Marker.INFO, new LatLng(36.911101, -121.776457), "Tarplant Hill", st);
+        insertMarker(Marker.INFO, new LatLng(36.913507, -121.768687), "Wetland restoration", st);
+        insertMarker(Marker.INFO, new LatLng(36.913690, -121.770600), "Nature Center", st);
+        insertMarker(Marker.INFO, new LatLng(36.9016682,-121.7845458), "Harkins Slough", st);
     }
 }

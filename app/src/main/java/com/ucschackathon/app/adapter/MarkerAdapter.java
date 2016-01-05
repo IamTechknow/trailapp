@@ -10,7 +10,6 @@ import android.widget.TextView;
 
 import com.ucschackathon.app.Marker;
 import com.ucschackathon.app.R;
-import com.ucschackathon.app.TrailActivity;
 
 import java.util.ArrayList;
 
@@ -54,7 +53,7 @@ public class MarkerAdapter extends RecyclerView.Adapter<MarkerAdapter.ViewHolder
     @Override
     public void onBindViewHolder(MarkerAdapter.ViewHolder holder, int position) {
         final Marker m = mItems.get(position);
-        int resourceID = TrailActivity.getMarkerIconID(m);
+        int resourceID = Marker.getMarkerIconID(m);
 
         //use deprecated function to make our lives easier
         holder.icon.setImageDrawable(mResources.getDrawable(resourceID));

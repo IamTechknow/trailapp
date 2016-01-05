@@ -12,9 +12,6 @@
         />
     </group>
     <group android:checkableBehavior="single" android:id="@+id/mapOptions">
-        <item android:id="@+id/showMarkersNav"
-            android:title="@string/showMarkers"
-            />
         <item android:id="@+id/satellite_enabled_nav"
             android:title="@string/satelliteOn"
             />
