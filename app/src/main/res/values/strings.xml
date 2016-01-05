@@ -14,6 +14,17 @@
     <string name="snackBarToggle">Toggle</string>
     <string name="navShowTrails">View trail data</string>
     <string name="needTrailData">Get the trail data first!</string>
+    <string name="detail_header1">Characteristics</string>
+    <string name="detail_header2">Where to find it</string>
+
+    <string name="cattail_characteristics">This plant is one of the most common plants growing in freshwater wetlands.
+        It has long, flat light-green leaves and creeping roots. The flowers are at the end of a long
+        stalk that looks like a hot dog on a stick. The fuzzy down that hangs on the cattails carries
+        the seeds in the wind.
+    </string>
+
+    <string name="cattail_where">Cattails grow in fresh water in every finger of the Watsonville Slough system.</string>
+
     <string name="aboutText"> <!-- Use CDATA to prevent android from parsing html tags -->
         <![CDATA[
         <h1>About</h1><p>This mobile application is created during the HACK UCSC 2015 competition
@@ -34,4 +45,5 @@
         for these sites.&quot;</blockquote></p>
         ]]>
     </string>
+
 </resources>

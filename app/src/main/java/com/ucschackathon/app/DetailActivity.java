@@ -7,7 +7,6 @@ import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.MenuItem;
-import android.widget.TextView;
 
 public class DetailActivity extends AppCompatActivity {
     private static final String EXTRA_KEY = "title";
@@ -22,7 +21,7 @@ public class DetailActivity extends AppCompatActivity {
         if(extras != null)
             title = extras.getString(EXTRA_KEY);
 
-        Toolbar mToolbar = (Toolbar) findViewById(R.id.tool_bar);
+        Toolbar mToolbar = (Toolbar) findViewById(R.id.detail_toolbar);
         setSupportActionBar(mToolbar);
 
         ActionBar bar = getSupportActionBar();
@@ -32,9 +31,6 @@ public class DetailActivity extends AppCompatActivity {
         //Set the collapsable toolbar title
         CollapsingToolbarLayout collapsingToolbar = (CollapsingToolbarLayout) findViewById(R.id.collapsing_toolbar);
         collapsingToolbar.setTitle(title);
-
-        TextView header = (TextView) findViewById(R.id.detail_header1);
-        header.setText(title);
     }
 
     @Override
