@@ -23,7 +23,7 @@ import java.util.ArrayList;
  */
 
 public class MarkerAdapter extends RecyclerView.Adapter<MarkerAdapter.ViewHolder>{
-    private static final String EXTRA_KEY = "title";
+    private static final String EXTRA_KEY = "title", EXTRA_LOC = "loc";
     private ArrayList<Marker> mItems;
     private Resources mResources;
 
@@ -71,6 +71,7 @@ public class MarkerAdapter extends RecyclerView.Adapter<MarkerAdapter.ViewHolder
                     Context context = v.getContext();
                     Intent i = new Intent(context, DetailActivity.class);
                     i.putExtra(EXTRA_KEY, m.getTitle());
+                    i.putExtra(EXTRA_LOC, m.getLoc());
                     context.startActivity(i);
                 }
             });

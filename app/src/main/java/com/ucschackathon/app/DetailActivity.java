@@ -1,9 +1,12 @@
 package com.ucschackathon.app;
 
+import android.content.Intent;
 import android.content.res.Resources;
 import android.content.res.TypedArray;
+import android.net.Uri;
 import android.os.Bundle;
 import android.support.design.widget.CollapsingToolbarLayout;
+import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.NavUtils;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
@@ -13,10 +16,13 @@ import android.text.method.LinkMovementMethod;
 import android.util.Log;
 import android.util.TypedValue;
 import android.view.MenuItem;
+import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
+
+import com.google.android.gms.maps.model.LatLng;
 
 /**
  * Detailed view for the info markers. Checks for an argument string to determine what data to show here.
@@ -24,9 +30,10 @@ import android.widget.TextView;
  */
 
 public class DetailActivity extends AppCompatActivity {
-    private static final String EXTRA_KEY = "title";
+    private static final String EXTRA_KEY = "title", EXTRA_LOC = "loc";
 
-    //Private variables to
+    //Private variables for UI
+    private FloatingActionButton fab;
     private CollapsingToolbarLayout collapsingToolbar;
     private LinearLayout rootDetailView;
     private ImageView image;
@@ -39,8 +46,11 @@ public class DetailActivity extends AppCompatActivity {
 
         Bundle extras = getIntent().getExtras();
         String title = null;
-        if(extras != null)
+        LatLng loc = null;
+        if(extras != null) {
             title = extras.getString(EXTRA_KEY);
+            loc = extras.getParcelable(EXTRA_LOC);
+        }
 
         Toolbar mToolbar = (Toolbar) findViewById(R.id.detail_toolbar);
         setSupportActionBar(mToolbar);
@@ -50,6 +60,7 @@ public class DetailActivity extends AppCompatActivity {
             bar.setDisplayHomeAsUpEnabled(true);
 
         //Get UI elements
+        fab = (FloatingActionButton) findViewById(R.id.fab);
         rootDetailView = (LinearLayout) findViewById(R.id.root_detail_view);
         collapsingToolbar = (CollapsingToolbarLayout) findViewById(R.id.collapsing_toolbar);
         image = (ImageView) findViewById(R.id.image);
@@ -59,7 +70,7 @@ public class DetailActivity extends AppCompatActivity {
         header2 = (TextView) findViewById(R.id.detail_header2);
 
         //Dynamically set content
-        setContent(title);
+        setContent(title, loc);
     }
 
     @Override
@@ -79,7 +90,7 @@ public class DetailActivity extends AppCompatActivity {
      * @param title Title of the marker
      */
 
-    private void setContent(String title) {
+    private void setContent(final String title, final LatLng loc) {
         Resources res = getResources();
         int id = getIDfromTitle(title);
 
@@ -108,7 +119,7 @@ public class DetailActivity extends AppCompatActivity {
                 detail2.setText(Html.fromHtml(getString(R.string.fitz_more)));
                 detail2.setMovementMethod(LinkMovementMethod.getInstance());
                 break;
-            case R.string.nature_center: //TODO: Link to access on GMaps via FAB
+            case R.string.nature_center:
                 image.setBackgroundColor(res.getColor(android.R.color.holo_blue_light));
                 header1.setText(R.string.detail_about);
                 header2.setText(R.string.detail_more);
@@ -120,6 +131,21 @@ public class DetailActivity extends AppCompatActivity {
                 image.setBackgroundColor(res.getColor(android.R.color.holo_blue_light));
                 break;
         }
+
+        //Setup floating action button to view location in Google Maps. Only for nature centers
+        if(id == R.string.nature_center || id == R.string.fitz)
+            fab.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    Uri gmmIntentUri = Uri.parse("geo:" + Double.toString(loc.latitude) +"," + Double.toString(loc.longitude) + "?q=" + Uri.encode(title) );
+                    Intent mapIntent = new Intent(Intent.ACTION_VIEW, gmmIntentUri);
+                    mapIntent.setPackage("com.google.android.apps.maps");
+                    if (mapIntent.resolveActivity(getPackageManager()) != null)
+                        startActivity(mapIntent);
+                }
+            });
+        else
+            fab.setVisibility(View.GONE);
     }
 
     /**

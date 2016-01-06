@@ -5,7 +5,6 @@
     <string name="noconnectionID">No Internet Connection!</string>
     <string name="satellite_menu_option">Enable Satellite Mode</string>
     <string name="about_menu_option">About this App</string>
-    <string name="showMarkers">Show Points of Interest</string>
     <string name="listMarkers">List Markers</string>
     <string name="showTrails">Display the trails</string>
     <string name="showTrailsAlt">Display the KML trail layer</string>
