@@ -15,13 +15,16 @@
     <string name="snackBarToggle">Toggle</string>
     <string name="navShowTrails">View trail data</string>
     <string name="needTrailData">Get the trail data first!</string>
-    <string name="detail_header1">Characteristics</string>
-    <string name="detail_header2">Where to find it</string>
     <string name="list_toast">Touch an info marker for detailed information</string>
 
     <!-- Detail activity headers -->
     <string name="detail_about">About</string>
     <string name="detail_more">More</string>
+    <string name="detail_header1">Characteristics</string>
+    <string name="detail_header2">Where to find it</string>
+    <string name="lifecycle">Life cycle</string>
+    <string name="cultural">Cultural Uses</string>
+    <string name="fact">Interesting Fact</string>
     <string name="cattail">Cattails</string>
     <string name="tarplant">Tarplants</string>
     <string name="fitz">Fitz WERC</string>
