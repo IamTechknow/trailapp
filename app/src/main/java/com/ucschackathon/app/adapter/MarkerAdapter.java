@@ -63,8 +63,8 @@ public class MarkerAdapter extends RecyclerView.Adapter<MarkerAdapter.ViewHolder
         holder.icon.setImageDrawable(mResources.getDrawable(resourceID));
         holder.subtitle.setText(m.getTitle());
 
-        //For info markers, implement View.OnClickListener to allow the Marker detail to show up
-        if(m.getType() == Marker.INFO)
+        //For info and nature center markers, implement View.OnClickListener to allow the Marker detail to show up
+        if(m.getType() == Marker.INFO || m.getType() == Marker.NATURECENTER)
             holder.itemView.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {

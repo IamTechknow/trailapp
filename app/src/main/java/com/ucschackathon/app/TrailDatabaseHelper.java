@@ -132,7 +132,7 @@ public class TrailDatabaseHelper extends SQLiteOpenHelper {
 
     public ArrayList<Trail> queryTrails() {
         // equivalent to "select * from trail order by start_lat asc"
-        Cursor trail_c = getReadableDatabase().query(TABLE_TRAIL, null, null, null, null, null, "_id" + " desc"); //ascending from ID
+        Cursor trail_c = getReadableDatabase().query(TABLE_TRAIL, null, null, null, null, null, "_id" + " asc"); //ascending from ID
         Cursor loc_c = getReadableDatabase().query(TABLE_LOC, null, null, null, null, null, null); //don't sort but sort by ID if needed
         ArrayList<Trail> trails = new ArrayList<>();
 
@@ -166,7 +166,7 @@ public class TrailDatabaseHelper extends SQLiteOpenHelper {
 
     public ArrayList<Marker> queryMarkers() {
         ArrayList<Marker> markers = new ArrayList<>();
-        Cursor marker_c = getReadableDatabase().query(TABLE_MARKER, null, null, null, null, null, COL_MARKER_TYPE + " asc");
+        Cursor marker_c = getReadableDatabase().query(TABLE_MARKER, null, null, null, null, null, COL_MARKER_TYPE + " desc");
         marker_c.moveToFirst();
 
         while(!marker_c.isAfterLast()) {
@@ -189,7 +189,7 @@ public class TrailDatabaseHelper extends SQLiteOpenHelper {
         insertMarker(Marker.INFO, new LatLng(36.913525, -121.780813), "Struve Slough", st);
         insertMarker(Marker.INFO, new LatLng(36.911101, -121.776457), "Tarplant Hill", st);
         insertMarker(Marker.INFO, new LatLng(36.913507, -121.768687), "Wetland restoration", st);
-        insertMarker(Marker.INFO, new LatLng(36.913690, -121.770600), "Nature Center", st);
+        insertMarker(Marker.INFO, new LatLng(36.912601, -121.770290), "Cattails", st);
         insertMarker(Marker.INFO, new LatLng(36.9016682,-121.7845458), "Harkins Slough", st);
     }
 }

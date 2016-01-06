@@ -43,7 +43,7 @@ public class ListMarkersActivity extends AppCompatActivity {
         recyclerView.setAdapter(new MarkerAdapter(mHelper.queryMarkers(), getResources()));
 
         //Let user know about detailed markers
-        Toast.makeText(this, R.string.list_toast, Toast.LENGTH_SHORT).show();
+        Toast.makeText(this, R.string.list_toast, Toast.LENGTH_LONG).show();
     }
 
     @Override

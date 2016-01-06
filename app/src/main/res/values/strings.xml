@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <!-- UI specific text -->
     <string name="app_name">Wetlands Watcher</string>
     <string name="noconnectionID">No Internet Connection!</string>
     <string name="satellite_menu_option">Enable Satellite Mode</string>
@@ -18,13 +19,60 @@
     <string name="detail_header2">Where to find it</string>
     <string name="list_toast">Touch an info marker for detailed information</string>
 
+    <!-- Detail activity headers -->
+    <string name="detail_about">About</string>
+    <string name="detail_more">More</string>
+    <string name="cattail">Cattails</string>
+    <string name="tarplant">Tarplants</string>
+    <string name="fitz">Fitz WERC</string>
+    <string name="nature_center">Watsonville Nature Center</string>
+    <string name="placeholder">Placeholder</string>
+
+    <!-- Detail activity information -->
+    <string name="fitz_about">The Fitz Wetlands Educational Resource Center (Fitz WERC) promotes research on, education about,
+        and conservation of the wetlands and watersheds of the Pajaro Valley.
+        The Fitz WERC is a joint project of the City of Watsonville, the Pajaro Valley Unified School District,
+        and the Watsonville Wetlands Watch.</string>
+    <string name="fitz_more"><![CDATA[
+    <a href="http://www.fitzwerc.org/">More information may be found at their website.</a>
+    ]]></string>
+
+    <string name="nature_center_about">The Watsonville Nature Center is a great place to bring the whole family!
+        Beautiful interactive and educational exhibits are appropriate for all ages.
+        The Kid’s Corner is filled with bilingual books, arts and crafts, and nature activities.
+        Sunday afternoons feature free outdoor bilingual guided nature walks on our award winning trails.</string>
+    <string name="nature_center_more"><![CDATA[
+    <a href="http://cityofwatsonville.org/public-works-utilities/conservation_outreach_and_education_program/nature-center">More information may be found at their website.</a>
+    ]]></string>
+
     <string name="cattail_characteristics">This plant is one of the most common plants growing in freshwater wetlands.
         It has long, flat light-green leaves and creeping roots. The flowers are at the end of a long
         stalk that looks like a hot dog on a stick. The fuzzy down that hangs on the cattails carries
         the seeds in the wind.
     </string>
-
     <string name="cattail_where">Cattails grow in fresh water in every finger of the Watsonville Slough system.</string>
+    <string name="cattail_life_cycle">It flowers from June to July</string>
+    <string name="cattail_uses">The leaves were used for weaving mats for houses. Native Americans made toy cattail dolls. Please see our statement on the use of plants.</string>
+    <string name="cattail_fact">Look closely when you walk by a colony of cattails. Cattails provide habitat and food for many nesting birds, muskrats and other animals.</string>
+
+    <string name="tarplant_characteristics">The tarplant is an aromatic, glandular annual herb in the sunflower
+        family (Asteraceae), growing 10-50 cm (4-20 inches) tall. Small plants may produce a single yellow
+        daisy-like flower head on a single stem, while larger plants have a rigid main stem and lateral
+        branches that grow to the height of the main stem and produce many flowers.
+        It is coated with a sticky, resinous material that helps to retard water loss during the heat of
+        the day and may also help to repel potential predators.
+    </string>
+    <string name="tarplant_where">It typically grows on deep loam and sandy loam soils with a subsurface clay component,
+        which hold moisture longer into the growing season compared to the surrounding sandy soils.
+        It is frequently associated with non-native grasses such as wild oat, barley, rattlesnake grass,
+        vulpia, and bromes. Native associates include rushes, California oatgrass, and other tarplants.
+        The species is often found where disturbances maintain a short vegetation canopy through the growing season.</string>
+    <string name="tarplant_fact">Its beautiful flower heads color the otherwise dry fields of mid summer,
+        attracting an interesting array of pollinators.</string>
+
+    <string name="restoration_info">Wetlands are a valuable natural resource that have been widely degraded. The islands you see behind the Nature Center are restored for a variety of birds and other wildlife.
+        Removal and exotic invasive weeds is the first step in returning these areas to natural health.
+        Weeds are replaced with native California plants that promote biodiversity and provide habitat for native wildlife.</string>
 
     <string name="aboutText"> <!-- Use CDATA to prevent android from parsing html tags -->
         <![CDATA[
