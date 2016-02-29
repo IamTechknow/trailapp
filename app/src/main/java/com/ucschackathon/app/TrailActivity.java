@@ -28,7 +28,6 @@ import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.ArrayList;
-import java.util.concurrent.ExecutionException;
 
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
@@ -133,19 +132,11 @@ public class TrailActivity extends AppCompatActivity {
 			public boolean onNavigationItemSelected(MenuItem menuItem) {
 				switch(menuItem.getItemId()) {
 					case R.id.showTrailsNav:
-						menuItem.setChecked(true);
-						try {
-							showTrails();
-						} catch (InterruptedException | ExecutionException e) {
-							e.printStackTrace();
-						}
+						showTrails();
 						break;
 					case R.id.showLayerNav:
-						try { //We could recycle mKmlLayer but not all data (the text overlays) is preserved
-							showTrailsAlt();
-						} catch (ExecutionException | InterruptedException e) {
-							e.printStackTrace();
-						}
+						//We could recycle mKmlLayer but not all data (the text overlays) is preserved
+						showTrailsAlt();
 						break;
 					case R.id.listMarkersNav:
 						if(mHaveTrailDB)
@@ -204,18 +195,11 @@ public class TrailActivity extends AppCompatActivity {
 				toggleMapLayer();
 				return true;
 			case R.id.showTrails: //Show the trails by parsing them
-				try {
 					showTrails();
-				} catch (InterruptedException | ExecutionException e) {
-					e.printStackTrace();
-				}
 				return true;
 			case R.id.showTrailsAlt: //Show the trails by parsing the KML layer with Google Maps utils
-				try { //We could recycle mKmlLayer but not all data (the text overlays) is preserved
-					showTrailsAlt();
-				} catch (ExecutionException | InterruptedException e) {
-					e.printStackTrace();
-				}
+				//We could recycle mKmlLayer but not all data (the text overlays) is preserved
+				showTrailsAlt();
 				return true;
 			case R.id.hideData: //Remove all drawn data from the map
 				if(mKmlLayer != null)
@@ -256,7 +240,7 @@ public class TrailActivity extends AppCompatActivity {
 		}
 	}
 
-	public void showTrails() throws ExecutionException, InterruptedException {
+	public void showTrails(){
 
 		if(mHaveTrailDB) {
 			setupTrailsFromDB();
@@ -266,19 +250,19 @@ public class TrailActivity extends AppCompatActivity {
 			NetworkInfo networkInfo = connMgr.getActiveNetworkInfo();
 
 			if (networkInfo != null && networkInfo.isConnected())
-				new TrailData().execute().get(); //Need to use ASyncTask class cannot do this on main UI thread
+				new TrailData().execute(); //Need to use ASyncTask class cannot do this on main UI thread
 			else
 				Snackbar.make(mCoordinatorLayout, R.string.noconnectionID, Snackbar.LENGTH_SHORT).show();
 		}
 	}
 
-	public void showTrailsAlt() throws ExecutionException, InterruptedException {
+	public void showTrailsAlt(){
 		//Check Internet Connection
 		ConnectivityManager connMgr = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
 		NetworkInfo networkInfo = connMgr.getActiveNetworkInfo();
 
 		if (networkInfo != null && networkInfo.isConnected())
-			new TrailLayer().execute().get();
+			new TrailLayer().execute();
 		else
 			Snackbar.make(mCoordinatorLayout, R.string.noconnectionID, Snackbar.LENGTH_SHORT).show();
 	}
