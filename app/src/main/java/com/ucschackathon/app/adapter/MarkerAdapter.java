@@ -11,7 +11,7 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.ucschackathon.app.DetailActivity;
-import com.ucschackathon.app.Marker;
+import com.ucschackathon.app.model.Marker;
 import com.ucschackathon.app.R;
 
 import java.util.ArrayList;

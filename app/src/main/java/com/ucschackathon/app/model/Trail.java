@@ -1,4 +1,4 @@
-package com.ucschackathon.app;
+package com.ucschackathon.app.model;
 
 import java.util.ArrayList;
 import com.google.android.gms.maps.model.LatLng;

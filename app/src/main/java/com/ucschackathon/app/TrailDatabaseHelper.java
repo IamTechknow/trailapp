@@ -9,6 +9,8 @@ import android.database.sqlite.SQLiteStatement;
 import android.util.Log;
 
 import com.google.android.gms.maps.model.LatLng;
+import com.ucschackathon.app.model.Marker;
+import com.ucschackathon.app.model.Trail;
 
 import java.util.ArrayList;
 

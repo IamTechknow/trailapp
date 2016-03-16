@@ -1,6 +1,7 @@
-package com.ucschackathon.app;
+package com.ucschackathon.app.model;
 
 import com.google.android.gms.maps.model.LatLng;
+import com.ucschackathon.app.R;
 
 /**
  * A Marker represents an icon to be drawn on to the map as a bitmap.

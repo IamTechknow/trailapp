@@ -1,7 +1,8 @@
 package com.ucschackathon.app;
 
-import android.content.Context;
+import android.app.LoaderManager;
 import android.content.Intent;
+import android.content.Loader;
 import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.net.ConnectivityManager;
@@ -35,10 +36,11 @@ import com.google.android.gms.maps.MapFragment;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
-import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.PolylineOptions;
 import com.google.maps.android.kml.KmlLayer;
+import com.ucschackathon.app.model.ListWrapper;
+import com.ucschackathon.app.model.Trail;
 
 import org.w3c.dom.Document;
 import org.w3c.dom.Node;
@@ -64,39 +66,18 @@ public class TrailActivity extends AppCompatActivity {
 	private CoordinatorLayout mCoordinatorLayout;
 	private GoogleMap mMap;
 	private boolean mInSatellite, mHaveTrailDB;
-	private Toolbar mToolbar;
 	private KmlLayer mKmlLayer; //to show or hide KML layer
-	private Marker[] markers;
 	private TrailDatabaseHelper mHelper;
 	private SharedPreferences mPrefs;
-	private TrailParser mThread;
-
-	//Change the default behaviour of centering the map to the user's location to center over Watsonville
-	private GoogleMap.OnMyLocationButtonClickListener mMyLocationListener = new GoogleMap.OnMyLocationButtonClickListener() {
-		@Override
-		public boolean onMyLocationButtonClick() {
-			mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(CENTER, 14));
-			return true;
-		}
-	};
 
 	//When the map is ready, save and configure it
 	private OnMapReadyCallback mMapReadyCallback = new OnMapReadyCallback() {
 		@Override
 		public void onMapReady(GoogleMap googleMap) {
 			mMap = googleMap;
-			mMap.setMyLocationEnabled(true); //allow a user to center map to Watsonville
-			mMap.setOnMyLocationButtonClickListener(mMyLocationListener);
 
 			// Move the camera instantly to Watsonville with a zoom of 14.
 			mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(CENTER, 14));
-		}
-	};
-
-	private TrailParser.Listener mTrailListener = new TrailParser.Listener() {
-		@Override
-		public void onDataSaved(PolylineOptions theTrail) {
-			mMap.addPolyline(theTrail);
 		}
 	};
 
@@ -106,7 +87,7 @@ public class TrailActivity extends AppCompatActivity {
 		setContentView(R.layout.main);
 		//Set up toolbar bar and layout
 		mCoordinatorLayout = (CoordinatorLayout) findViewById(R.id.thelayout);
-		mToolbar = (Toolbar) findViewById(R.id.tool_bar);
+		Toolbar mToolbar = (Toolbar) findViewById(R.id.tool_bar);
 		setSupportActionBar(mToolbar);
 
 		//set up the map
@@ -132,10 +113,12 @@ public class TrailActivity extends AppCompatActivity {
 			public boolean onNavigationItemSelected(MenuItem menuItem) {
 				switch(menuItem.getItemId()) {
 					case R.id.showTrailsNav:
+						mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(CENTER, 14));
 						showTrails();
 						break;
 					case R.id.showLayerNav:
 						//We could recycle mKmlLayer but not all data (the text overlays) is preserved
+						mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(CENTER, 14));
 						showTrailsAlt();
 						break;
 					case R.id.listMarkersNav:
@@ -148,8 +131,7 @@ public class TrailActivity extends AppCompatActivity {
 						toggleMapLayer();
 						break;
 					case R.id.aboutNav:
-						Intent intent = new Intent(getApplicationContext(), AboutActivity.class);
-						startActivity(intent);
+						startActivity(new Intent(getApplicationContext(), AboutActivity.class));
 						break;
 					default:
 						break;
@@ -160,22 +142,12 @@ public class TrailActivity extends AppCompatActivity {
 		});
 
 		//Setup DB, Determine if we have init the trail database by checking key-value pair flag
-		Context c = getApplicationContext();
-		mHelper = new TrailDatabaseHelper(c);
-		mPrefs = c.getSharedPreferences(PREFS_FILE, Context.MODE_PRIVATE);
+		mHelper = new TrailDatabaseHelper(this);
+		mPrefs = getSharedPreferences(PREFS_FILE, MODE_PRIVATE);
 		mHaveTrailDB = mPrefs.getBoolean(PREFS_HAVE_TRAIL_DB, false); //return false if it doesn't exist
 
-		//Setup Handler background thread
-		/*mThread = new TrailParser(new Handler(), mHelper);
-		mThread.start();
-		mThread.getLooper();
-		mThread.setListener(mTrailListener);*/
-	}
-
-	@Override
-	protected void onDestroy() {
-		super.onDestroy();
-		//mThread.clearQueue();
+		if(mHaveTrailDB) //load data asynchronously
+			getLoaderManager().initLoader(0, null, mLoaderCallbacks);
 	}
 
 	@Override
@@ -205,7 +177,6 @@ public class TrailActivity extends AppCompatActivity {
 				if(mKmlLayer != null)
 					mKmlLayer.removeLayerFromMap();
 				mMap.clear();
-				markers = null;
 				return true;
 			case R.id.about: //Show about screen
 				Intent intent = new Intent(this, AboutActivity.class);
@@ -215,6 +186,30 @@ public class TrailActivity extends AppCompatActivity {
 				return super.onOptionsItemSelected(item);
 		}
 	}
+
+	private LoaderManager.LoaderCallbacks<ListWrapper> mLoaderCallbacks = new LoaderManager.LoaderCallbacks<ListWrapper>() {
+		@Override
+		public Loader<ListWrapper> onCreateLoader(int id, Bundle args) {
+			return new TrailDataLoader(TrailActivity.this);
+		}
+
+		//Show the data onto the map!
+		@Override
+		public void onLoadFinished(Loader<ListWrapper> loader, ListWrapper lists) {
+			for(Trail t: lists.trails)
+				mMap.addPolyline(new PolylineOptions().addAll(t.getTrailCoords()).color(t.getColor()).width(LINE_WIDTH));
+
+			for(com.ucschackathon.app.model.Marker m : lists.markers) {
+				int resourceID = com.ucschackathon.app.model.Marker.getMarkerIconID(m);
+				mMap.addMarker(new MarkerOptions().position(m.getLoc()).title(m.getTitle()).icon(BitmapDescriptorFactory.fromResource(resourceID)));
+			}
+		}
+
+		@Override
+		public void onLoaderReset(Loader<ListWrapper> loader) {
+
+		}
+	};
 
 	public void toggleMapLayer() {
 		//Enable Satellite mode or disable and display a snackbar indicating this. If the snackbar Toggle is triggered, function is run again
@@ -240,25 +235,23 @@ public class TrailActivity extends AppCompatActivity {
 		}
 	}
 
-	public void showTrails(){
-
-		if(mHaveTrailDB) {
-			setupTrailsFromDB();
-		} else {
+	public void showTrails() {
+		if(!mHaveTrailDB) {
 			//Check Internet Connection
-			ConnectivityManager connMgr = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
+			ConnectivityManager connMgr = (ConnectivityManager) getSystemService(CONNECTIVITY_SERVICE);
 			NetworkInfo networkInfo = connMgr.getActiveNetworkInfo();
 
 			if (networkInfo != null && networkInfo.isConnected())
 				new TrailData().execute(); //Need to use ASyncTask class cannot do this on main UI thread
 			else
 				Snackbar.make(mCoordinatorLayout, R.string.noconnectionID, Snackbar.LENGTH_SHORT).show();
-		}
+		} else
+			getLoaderManager().restartLoader(0, null, mLoaderCallbacks);
 	}
 
-	public void showTrailsAlt(){
+	public void showTrailsAlt() {
 		//Check Internet Connection
-		ConnectivityManager connMgr = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
+		ConnectivityManager connMgr = (ConnectivityManager) getSystemService(CONNECTIVITY_SERVICE);
 		NetworkInfo networkInfo = connMgr.getActiveNetworkInfo();
 
 		if (networkInfo != null && networkInfo.isConnected())
@@ -270,7 +263,6 @@ public class TrailActivity extends AppCompatActivity {
 	/*
 		Private method to download the KML file and return it as an IO stream
 	 */
-
 	private InputStream getKMLasStream() {
 		final String TAG = "TrailData", theKML = "http://www.watsonvillewetlandswatch.org/sloughs/EntireMapWeb.kml";
 		InputStream is = null;
@@ -292,30 +284,19 @@ public class TrailActivity extends AppCompatActivity {
 		return is;
 	}
 
-	private class ListWrapper {
-		public ArrayList<com.ucschackathon.app.Marker> markers;
-		public ArrayList<Trail> trails;
-
-		public ListWrapper(ArrayList<com.ucschackathon.app.Marker> markers, ArrayList<Trail> trails) {
-			this.markers = markers;
-			this.trails = trails;
-		}
-	}
-
 	private class TrailData extends AsyncTask<Void, Void, ListWrapper> {
-		private Document document;
 
 		@Override
 		protected ListWrapper doInBackground(Void... params) {
 			try {
-				ArrayList<com.ucschackathon.app.Marker> markers = new ArrayList<>();
+				ArrayList<com.ucschackathon.app.model.Marker> markers = new ArrayList<>();
 				ArrayList<Trail> trails = new ArrayList<>();
 				InputStream inputStream = getKMLasStream();
 
 				//Parse the KML input stream
 				DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
 				DocumentBuilder db = dbf.newDocumentBuilder();
-				document = db.parse(inputStream);
+				Document document = db.parse(inputStream);
 
 				NodeList coordinates = document.getElementsByTagName("coordinates");
 				if (coordinates.getLength() > 0) {
@@ -326,28 +307,28 @@ public class TrailActivity extends AppCompatActivity {
 						Node coordinate = coordinates.item(index).getFirstChild();
 						String coord = coordinate.getNodeValue(), title = coordinate.getParentNode().getParentNode().getParentNode().getChildNodes().item(1).getFirstChild().getNodeValue();
 
-						markers.add(parseMarker(coord, com.ucschackathon.app.Marker.RESTROOM, title));
+						markers.add(parseMarker(coord, com.ucschackathon.app.model.Marker.RESTROOM, title));
 					}
 
 					for (index = 6 ; index < 8; index++) { //Markers for Nature Center
 						Node coordinate = coordinates.item(index).getFirstChild();
 						String coord = coordinate.getNodeValue(), title = coordinate.getParentNode().getParentNode().getParentNode().getChildNodes().item(1).getFirstChild().getNodeValue();
 
-						markers.add(parseMarker(coord, com.ucschackathon.app.Marker.NATURECENTER, title));
+						markers.add(parseMarker(coord, com.ucschackathon.app.model.Marker.NATURECENTER, title));
 					}
 
 					for (index = 8; index < 42; index++) { //Markers for trail entrances
 						Node coordinate = coordinates.item(index).getFirstChild();
 						String coord = coordinate.getNodeValue(), title = coordinate.getParentNode().getParentNode().getParentNode().getChildNodes().item(1).getFirstChild().getNodeValue();
 
-						markers.add(parseMarker(coord, com.ucschackathon.app.Marker.ENTRANCE, title));
+						markers.add(parseMarker(coord, com.ucschackathon.app.model.Marker.ENTRANCE, title));
 					}
 
 					for(index = 42; index < 48; index++) { //Markers for Parking
 						Node coordinate = coordinates.item(index).getFirstChild();
 						String coord = coordinate.getNodeValue(), title = coordinate.getParentNode().getParentNode().getParentNode().getChildNodes().item(1).getFirstChild().getNodeValue();
 
-						markers.add(parseMarker(coord, com.ucschackathon.app.Marker.PARKING, title));
+						markers.add(parseMarker(coord, com.ucschackathon.app.model.Marker.PARKING, title));
 					}
 
 					for(index = 48; index < 113; index++) { //Draw all the trails!
@@ -401,8 +382,8 @@ public class TrailActivity extends AppCompatActivity {
 				for(Trail t: result.trails)
 					mMap.addPolyline(new PolylineOptions().addAll(t.getTrailCoords()).color(t.getColor()).width(LINE_WIDTH));
 
-				for(com.ucschackathon.app.Marker m: result.markers) {
-					int resourceID = com.ucschackathon.app.Marker.getMarkerIconID(m);
+				for(com.ucschackathon.app.model.Marker m: result.markers) {
+					int resourceID = com.ucschackathon.app.model.Marker.getMarkerIconID(m);
 					mMap.addMarker(new MarkerOptions().position(m.getLoc()).title(m.getTitle()).icon(BitmapDescriptorFactory.fromResource(resourceID)));
 				}
 
@@ -413,11 +394,11 @@ public class TrailActivity extends AppCompatActivity {
 				Snackbar.make(mCoordinatorLayout, "Data not accessed. Try again", Snackbar.LENGTH_LONG).show();
 		}
 
-		private com.ucschackathon.app.Marker parseMarker(String path, int type, String title) {
+		private com.ucschackathon.app.model.Marker parseMarker(String path, int type, String title) {
 			String[] lngLat = path.split(","); //split the coordinates by a comma to get individual coordinates
 			String lat = lngLat[1], lng = lngLat[0].substring(lngLat[0].indexOf('-'));
 
-			return new com.ucschackathon.app.Marker(type, title, Double.parseDouble(lat), Double.parseDouble(lng));
+			return new com.ucschackathon.app.model.Marker(type, title, Double.parseDouble(lat), Double.parseDouble(lng));
 		}
 
 		//Parse the coordinates and fill the arraylist
@@ -436,7 +417,6 @@ public class TrailActivity extends AppCompatActivity {
 	/**
 		Another AsyncTask object to provide an alternative to viewing the KML geodata by using Google Maps utils
 	 */
-
 	private class TrailLayer extends AsyncTask<Void, Void, byte[]> {
 		@Override
 		protected byte[] doInBackground(Void... params) {
@@ -466,20 +446,6 @@ public class TrailActivity extends AppCompatActivity {
 			} catch (XmlPullParserException | IOException e) {
 				e.printStackTrace();
 			}
-		}
-	}
-
-	//For each trail, get its collection of LatLngs then make the polyline. Get its type to set the color
-	private void setupTrailsFromDB() {
-		ArrayList<Trail> trails = mHelper.queryTrails();
-		ArrayList<com.ucschackathon.app.Marker> markers = mHelper.queryMarkers();
-
-		for(Trail t: trails)
-			mMap.addPolyline(new PolylineOptions().addAll(t.getTrailCoords()).color(t.getColor()).width(LINE_WIDTH));
-
-		for(com.ucschackathon.app.Marker m: markers) {
-			int resourceID = com.ucschackathon.app.Marker.getMarkerIconID(m);
-			mMap.addMarker(new MarkerOptions().position(m.getLoc()).title(m.getTitle()).icon(BitmapDescriptorFactory.fromResource(resourceID)));
 		}
 	}
 }
