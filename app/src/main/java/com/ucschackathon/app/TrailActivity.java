@@ -78,6 +78,9 @@ public class TrailActivity extends AppCompatActivity {
 
 			// Move the camera instantly to Watsonville with a zoom of 14.
 			mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(CENTER, 14));
+
+			if(mHaveTrailDB) //load data asynchronously
+				getLoaderManager().initLoader(0, null, mLoaderCallbacks);
 		}
 	};
 
@@ -145,9 +148,6 @@ public class TrailActivity extends AppCompatActivity {
 		mHelper = new TrailDatabaseHelper(this);
 		mPrefs = getSharedPreferences(PREFS_FILE, MODE_PRIVATE);
 		mHaveTrailDB = mPrefs.getBoolean(PREFS_HAVE_TRAIL_DB, false); //return false if it doesn't exist
-
-		if(mHaveTrailDB) //load data asynchronously
-			getLoaderManager().initLoader(0, null, mLoaderCallbacks);
 	}
 
 	@Override

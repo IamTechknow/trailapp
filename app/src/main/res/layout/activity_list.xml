@@ -7,7 +7,7 @@
     tools:context=".ListMarkersActivity"
     android:background="@android:color/background_light">
 
-    <include android:id="@+id/tool_bar" layout="@layout/tool_bar" />
+    <include layout="@layout/tool_bar" />
 
     <!-- Padding is to give space at the screen edges. Layout_below makes sure it is below toolbar -->
     <android.support.v7.widget.RecyclerView
